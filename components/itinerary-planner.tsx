@@ -369,8 +369,8 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
     if (!destination) return
 
     // If dropped in the calendar
-    if (destination.droppableId.startsWith("calendar-")) {
-      const [_, dateStr, timeSlot] = destination.droppableId.split("-")
+    if (destination.droppableId.startsWith("calendar|")) {
+      const [, dateStr, timeSlot] = destination.droppableId.split("|");
       const activityId = result.draggableId
 
       // Find the activity in available activities
@@ -596,7 +596,7 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
                         return (
                           <Droppable
                             key={timeIndex}
-                            droppableId={`calendar-${dateStr}-${time}`}
+                            droppableId={`calendar|${dateStr}|${time}`}
                             isDropDisabled={!!scheduledActivity}
                           >
                             {(provided, snapshot) => (
