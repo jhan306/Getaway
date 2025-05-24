@@ -589,7 +589,10 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
                         // Skip rendering droppable for slots that are part of a multi-slot activity but not the start
                         if (scheduledActivity && !scheduledActivity.isStart && scheduledActivity.position > 0) {
                           return (
-                            <div key={timeIndex} className="h-16 border-b border-gray-200 last:border-b-0 relative" style={{ overflow: "visible" }}>/>
+                            <div
+                              key={timeIndex}
+                              className="h-16 border-b border-gray-200 last:border-b-0 relative"
+                              style={{ overflow: 'visible' }
                           )
                         }
 
