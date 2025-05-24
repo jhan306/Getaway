@@ -337,7 +337,7 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
 
   // Parse duration string to number of hours
   const parseDuration = (durationStr: string) => {
-    const match = durationStr.match(/(\\d+(?:\\.\\d+)?)/)
+    const match = durationStr.match(/(\d+(?:\.\d+)?)/)
     if (match && match[1]) {
       return Number.parseInt(match[1], 10)
     }
@@ -589,7 +589,7 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
                         // Skip rendering droppable for slots that are part of a multi-slot activity but not the start
                         if (scheduledActivity && !scheduledActivity.isStart && scheduledActivity.position > 0) {
                           return (
-                            <div key={timeIndex} className="h-16 border-b border-gray-200 last:border-b-0 relative" />
+                            <div key={timeIndex} className="h-16 border-b border-gray-200 last:border-b-0 relative" style={{ overflow: "visible" }}>/>
                           )
                         }
 
