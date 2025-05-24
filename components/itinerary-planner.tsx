@@ -337,7 +337,7 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
 
   // Parse duration string to number of hours
   const parseDuration = (durationStr: string) => {
-    const match = durationStr.match(/(\d+)/)
+    const match = durationStr.match(/(\\d+(?:\\.\\d+)?)/)
     if (match && match[1]) {
       return Number.parseInt(match[1], 10)
     }
