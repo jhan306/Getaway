@@ -592,7 +592,7 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
                             <div
                               key={timeIndex}
                               className="h-16 border-b border-gray-200 last:border-b-0 relative"
-                              style={{ overflow: 'visible' }
+                              style={{ overflow: 'visible' }}
                             />
                           )
                         }
