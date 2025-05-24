@@ -606,12 +606,13 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
                                 className={`h-16 border-b border-gray-200 last:border-b-0 relative ${
                                   snapshot.isDraggingOver ? "bg-blue-50 border-2 border-dashed border-blue-300" : ""
                                 }`}
+                                style={{ overflow: "visible" }}
                               >
                                 {scheduledActivity && scheduledActivity.isStart ? (
                                   <div
                                     className="absolute left-1 right-1 rounded p-2 text-xs overflow-hidden flex flex-col z-10"
                                     style={{
-                                      height: `calc(${scheduledActivity.totalSlots * 16}rem - 0.5rem)`,
+                                      height: `calc(${scheduledActivity.totalSlots * 4}rem - 0.5rem)`,
                                       top: "0.25rem",
                                       backgroundColor: activityTypes[scheduledActivity.type]?.color || "#4285F4",
                                       color: "white",
