@@ -367,6 +367,7 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
 
     // If dropped outside a droppable area
     if (!destination) return
+    console.log("DRAG END:", result, "\nBEFORE:", scheduledActivities)
 
     // If dropped in the calendar
     if (destination.droppableId.startsWith("calendar|")) {
@@ -413,6 +414,7 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
       }
 
       setScheduledActivities(newScheduledActivities)
+      console.log("AFTER:", newScheduledActivities)
 
       toast({
         title: "Activity scheduled",
