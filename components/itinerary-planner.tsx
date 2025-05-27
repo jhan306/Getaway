@@ -540,8 +540,8 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
           {/* Calendar View */}
-          <Card className="overflow-hidden bg-white">
-            <CardContent className="p-0">
+          <Card className="bg-white">
+            <CardContent className="p-0 overflow-auto">
               {/* Calendar navigation */}
               <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-white">
                 <Button variant="ghost" size="sm" onClick={previousDays}>
