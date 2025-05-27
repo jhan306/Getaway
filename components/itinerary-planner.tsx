@@ -363,7 +363,9 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
 
   // Handle drag end event
   const onDragEnd = (result: any) => {
+    console.log("🛑 onDragEnd", result)
     const { source, destination } = result
+    console.log("📍 destination.droppableId =", destination?.droppableId);
 
     // If dropped outside a droppable area
     if (!destination) return
