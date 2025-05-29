@@ -34,7 +34,7 @@ export default function MapPage() {
           </Link>
           <h1 className="text-3xl font-bold mb-4 text-white !important">Interactive World Map</h1>
           <p className="text-lg mb-2 max-w-2xl text-white !important">
-            Explore countries around the world. Hover over a country to see its name, and click on a country to display
+            asdf Explore countries around the world. Hover over a country to see its name, and click on a country to display
             data.
           </p>
           <div className="flex items-center gap-2 mb-6 text-sm text-white !important">
