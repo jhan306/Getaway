@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Getaway",
-  description: "Explore countries around the world with our interactive map",
+  description: "ASDF Explore countries around the world with our interactive map",
   generator: "v0.dev",
 };
 
