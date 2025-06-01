@@ -1,14 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { MapPin, Clock, X, Tag } from "lucide-react"
+import { MapPin, Clock, X, Tag, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd"
 import { Card, CardContent } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { ActivityCard } from "@/components/activity-card"
 import { v4 as uuid } from "uuid"     //  npm i uuid
-import { Plus } from "lucide-react"
 
 // Sample destination data
 const destinations = [
@@ -17,6 +16,30 @@ const destinations = [
   { id: "japan", name: "Japan", flag: "🇯🇵" },
   { id: "france", name: "France", flag: "🇫🇷" },
 ]
+
+export type Activity = {
+  id: string
+  name: string
+  image: string
+  duration: string
+  location: string
+  description: string
+  type: keyof typeof activityTypes
+  physicalRating: number
+  scenicRating: number
+  culturalRating: number
+}
+
+type ScheduledMap = Record<string, any>
+
+type Trip = {
+  id: string
+  name: string
+  flag: string
+  available: Activity[]
+  scheduled: ScheduledMap
+}
+
 
 // Activity types with their colors
 const activityTypes = {
@@ -275,102 +298,65 @@ const timeSlots = [
   "8:00 PM",
 ]
 
-const initialTrip: Trip = {
-  id: uuid(),
-  name: countryId ? countryId.charAt(0).toUpperCase() + countryId.slice(1) : "Greece",
-  flag: countryId === "japan"  ? "🇯🇵"
-      : countryId === "italy"  ? "🇮🇹"
-      : countryId === "france" ? "🇫🇷"
-      : "🇬🇷",
-  available: defaultAvailableActivities,   // whatever you already build
-  scheduled: {},                           // empty calendar
-}
+const tripFlag = (id: string) =>
+  id === "japan" ? "🇯🇵" :
+  id === "italy" ? "🇮🇹" :
+  id === "france" ? "🇫🇷" :
+  id === "greece" ? "🇬🇷" : "🗺️"
 
-
-
-
-// Helper function to format time for display
 const formatTimeRange = (startTime: string, durationHours: number) => {
   const startIndex = timeSlots.indexOf(startTime)
   if (startIndex === -1) return ""
-
-  // Parse the start time
-  const startTimeParts = startTime.match(/(\d+):(\d+)\s(AM|PM)/)
-  if (!startTimeParts) return ""
-
-  const startHour = Number.parseInt(startTimeParts[1], 10)
-  const startMinute = Number.parseInt(startTimeParts[2], 10)
-  const startPeriod = startTimeParts[3]
-
-  // Calculate end time
-  let endHour = startHour + durationHours
+  const [ , rawHour, rawMin, startPeriod ] = startTime.match(/(\d+):(\d+)\s(AM|PM)/) as RegExpMatchArray
+  let endHour = Number(rawHour) + durationHours
   let endPeriod = startPeriod
-
-  // Handle period change
   if (startPeriod === "AM" && endHour >= 12) {
     endPeriod = "PM"
     if (endHour > 12) endHour -= 12
   } else if (startPeriod === "PM" && endHour > 12) {
     endHour -= 12
   }
-
-  return `${startHour}:${startMinute === 0 ? "00" : startMinute}${startPeriod} - ${endHour}:${
-    startMinute === 0 ? "00" : startMinute
-  }${endPeriod}`
+  return `${rawHour}:${rawMin.padEnd(2,"0")}${startPeriod} - ${endHour}:${rawMin.padEnd(2,"0")}${endPeriod}`
 }
 
+
+
+
+const makeTrip = (name: string, startActivities: Activity[] = []): Trip => ({
+  id: crypto.randomUUID(),
+  name,
+  flag: tripFlag(name.toLowerCase()),
+  available: startActivities,
+  scheduled: {},
+})
+
 export default function ItineraryPlanner({ countryId = "greece" }: { countryId?: string }) {
-  const tripFlag = (id: string) =>
-    id === "japan"  ? "🇯🇵"
-    : id === "italy" ? "🇮🇹"
-    : id === "france"? "🇫🇷"
-    : id === "greece"? "🇬🇷"
-    : "🗺️";
-  const makeTrip = (name: string): Trip => ({
-    id: crypto.randomUUID(),                   // built-in UUID
-    name,
-    flag: tripFlag(name.toLowerCase()),
-    available: defaultAvailableActivities,     // or []
-    scheduled: {},
-  });
-  
-  const selectedDestination = destinations.find((d) => d.id === countryId) || destinations[0]
-
-  const [currentDate, setCurrentDate] = useState(new Date())
   const { toast } = useToast()
+  const [currentDate, setCurrentDate] = useState(new Date())
 
-  // ---------- trip state ----------
-  const [trips, setTrips] = useState<Trip[]>(() => [makeTrip(countryId)]);
-  const [currentId, setCurrentId] = useState(trips[0].id);
+  // ----- Trip state -------------------------------------------
+  const initialAvail = [...(activitiesByCountry[countryId as keyof typeof activitiesByCountry] || [])]
+  const [trips, setTrips] = useState<Trip[]>(() => [makeTrip(countryId, initialAvail)])
+  const [currentId, setCurrentId] = useState(trips[0].id)
+
+  const currentTrip = trips.find(t => t.id === currentId) as Trip
 
   const updateTrip = (partial: Partial<Trip>) =>
-    setTrips((prev) =>
-      prev.map((t) => (t.id === currentId ? { ...t, ...partial } : t))
-    );
+    setTrips(prev => prev.map(t => (t.id === currentId ? { ...t, ...partial } : t)))
 
-  const currentTrip = trips.find((t) => t.id === currentId)!;
+  // alias shortcuts the rest of the code already expects
+  const { available: availableActivities, scheduled: scheduledActivities } = currentTrip
+  const setAvailableActivities = (avail: Activity[]) => updateTrip({ available: avail })
+  const setScheduledActivities = (sched: ScheduledMap) => updateTrip
 
-   const {
-    available: availableActivities,
-    scheduled: scheduledActivities,
-  } = currentTrip;
-
-  const setAvailableActivities = (newAvail: Activity[]) =>
-    updateTrip({ available: newAvail });
-
-  const setScheduledActivities = (newSched: ScheduledMap) =>
-    updateTrip({ scheduled: newSched });
-
-  
+// ----- Add‐trip handler -------------------------------------
   const addTrip = () => {
-    const name = prompt("Give your trip a name (e.g. Spain 2026)")?.trim();
-    if (!name) return;
-    const newTrip = makeTrip(name);
-    setTrips((prev) => [...prev, newTrip]);
-    setCurrentId(newTrip.id);
-  };
-
-  // Update available activities when country changes
+    const name = prompt("Give your trip a name (e.g. Spain 2026)")?.trim()
+    if (!name) return
+    const newTrip = makeTrip(name)
+    setTrips(prev => [...prev, newTrip])
+    setCurrentId(newTrip.id)
+  }
   useEffect(() => {
     setAvailableActivities([...(activitiesByCountry[countryId as keyof typeof activitiesByCountry] || [])])
     setScheduledActivities({})
