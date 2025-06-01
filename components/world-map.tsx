@@ -16,7 +16,7 @@ import {
   TooltipProvider,
 } from "@/components/ui/tooltip"
 import { scaleLog } from "d3-scale"
-import { interpolateRainbow } from "d3-scale-chromatic"
+import { interpolateSinebow } from "d3-scale-chromatic"
 
 const geoUrl = "https://unpkg.com/world-atlas@2.0.2/countries-110m.json"
 
@@ -51,7 +51,7 @@ const colorScale = scaleLog().domain([1, 10]).clamp(true).range([0, 1])
 
 const getFillColor = (value?: number) => {
   if (!value || value < 1) return "#f0f0f0"
-  return interpolateRainbow(colorScale(value))
+  return interpolateSinebow(colorScale(value))
 }
 
 export default function WorldMap() {
@@ -158,7 +158,7 @@ export default function WorldMap() {
                 <stop
                   key={val}
                   offset={`${(i / 9) * 100}%`}
-                  stopColor={interpolateRainbow(colorScale(val))}
+                  stopColor={interpolateSinebow(colorScale(val))}
                 />
               ))}
             </linearGradient>
