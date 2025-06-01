@@ -339,6 +339,12 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
   const initialAvail = [...(activitiesByCountry[countryId as keyof typeof activitiesByCountry] || [])]
   const [trips, setTrips] = useState<Trip[]>(() => [makeTrip(countryId, initialAvail)])
   const [currentId, setCurrentId] = useState(trips[0].id)
+  const [isAddOpen, setAddOpen] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newLocation, setNewLocation] = useState("");
+  const [newDuration, setNewDuration] = useState("1 hour");
+  const [newTag, setNewTag] = useState<keyof typeof activityTypes>("sightseeing");
+  const [newDescription, setNewDescription] = useState("");
 
   const currentTrip = trips.find(t => t.id === currentId) as Trip
 
@@ -358,6 +364,32 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
     setTrips(prev => [...prev, newTrip])
     setCurrentId(newTrip.id)
   }
+  const saveNewActivity = () => {
+  if (!newTitle.trim()) return;
+
+  const newActivity: Activity = {
+    id: crypto.randomUUID(),
+    name: newTitle.trim(),
+    image: "/placeholder.svg?height=200&width=300",  // or let users upload later
+    duration: newDuration,
+    location: newLocation.trim() || "Unknown",
+    description: newDescription.trim(),
+    type: newTag,
+    physicalRating: 1,
+    scenicRating: 1,
+    culturalRating: 1,
+  };
+    setAvailableActivities([...availableActivities, newActivity]);
+
+  // reset + close dialog
+    setNewTitle("");
+    setNewLocation("");
+    setNewDuration("1 hour");
+    setNewTag("sightseeing");
+    setNewDescription("");
+    setAddOpen(false);
+  };
+  
   useEffect(() => {
     setAvailableActivities([...(activitiesByCountry[countryId as keyof typeof activitiesByCountry] || [])])
     setScheduledActivities({})
@@ -580,6 +612,75 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
         >
           <Plus className="h-4 w-4" /> Add trip
         </button>
+
+        {isAddOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-white rounded-lg w-full max-w-md p-6 space-y-4">
+              <h3 className="text-lg font-semibold">New Activity</h3>
+        
+              <input
+                type="text"
+                placeholder="Title"
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                className="w-full border rounded p-2 text-sm"
+              />
+        
+              <input
+                type="text"
+                placeholder="Location"
+                value={newLocation}
+                onChange={(e) => setNewLocation(e.target.value)}
+                className="w-full border rounded p-2 text-sm"
+              />
+        
+              <input
+                type="text"
+                placeholder="Duration (e.g. 2 hours)"
+                value={newDuration}
+                onChange={(e) => setNewDuration(e.target.value)}
+                className="w-full border rounded p-2 text-sm"
+              />
+        
+              {/* Tag picker */}
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(activityTypes).map(([key, { name, color }]) => (
+                  <button
+                    key={key}
+                    onClick={() => setNewTag(key as keyof typeof activityTypes)}
+                    className={`px-3 py-1 rounded text-xs ${
+                      key === newTag ? "bg-amber-200" : "bg-gray-100 hover:bg-gray-200"
+                    }`}
+                    style={{ borderColor: color }}
+                  >
+                    {name}
+                  </button>
+                ))}
+              </div>
+        
+              <textarea
+                placeholder="Description (optional)"
+                value={newDescription}
+                onChange={(e) => setNewDescription(e.target.value)}
+                className="w-full border rounded p-2 text-sm h-20"
+              />
+        
+              {/* Dialog actions */}
+              <div className="flex justify-end gap-2 pt-2">
+                <Button variant="ghost" size="sm" onClick={() => setAddOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={saveNewActivity}
+                  disabled={!newTitle.trim()}
+                >
+                  Save
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}        
       </div>
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
@@ -717,10 +818,22 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
 
           {/* Activities Panel */}
           <div className="bg-white rounded-lg border max-h-[calc(100vh-300px)] flex flex-col">
-            <div className="p-4 border-b">
-              <h2 className="text-lg font-semibold text-black">Available Activities</h2>
-              <p className="text-sm text-black">Drag activities to the calendar to schedule them</p>
+            <div className="p-4 border-b flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-black">Available Activities</h2>
+                <p className="text-sm text-black">Drag activities to the calendar to schedule them</p>
+              </div>
+            
+              {/* ➕ Add Activity */}
+              <Button
+                size="sm"
+                className="bg-white text-black border border-gray-300 hover:bg-gray-100"
+                onClick={() => setAddOpen(true)}
+              >
+                <Plus className="h-4 w-4 mr-1" /> Add
+              </Button>
             </div>
+
 
             <Droppable droppableId="activities" isDropDisabled={false}>
               {(provided) => (
