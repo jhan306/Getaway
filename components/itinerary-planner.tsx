@@ -367,6 +367,11 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
   const saveNewActivity = () => {
   if (!newTitle.trim()) return;
 
+  const durationOptions = [
+    "30 mins","1 hour","1.5 hours","2 hours","2.5 hours","3 hours","3.5 hours","4 hours","4.5 hours",
+    "5 hours","5.5 hours","6 hours","6.5 hours","7 hours","7.5 hours","8 hours"
+  ];
+  
   const newActivity: Activity = {
     id: crypto.randomUUID(),
     name: newTitle.trim(),
@@ -634,13 +639,15 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
                 className="w-full border rounded p-2 text-sm"
               />
         
-              <input
-                type="text"
-                placeholder="Duration (e.g. 2 hours)"
+              <select
                 value={newDuration}
                 onChange={(e) => setNewDuration(e.target.value)}
                 className="w-full border rounded p-2 text-sm"
-              />
+              >
+                {durationOptions.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+            </select>
         
               {/* Tag picker */}
               <div className="flex flex-wrap gap-2">
