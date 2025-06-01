@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { ActivityCard } from "@/components/activity-card"
 import { v4 as uuid } from "uuid"     //  npm i uuid
+import { cn } from "@/lib/utils";
 
 // Sample destination data
 const destinations = [
