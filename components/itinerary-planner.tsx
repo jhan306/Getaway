@@ -505,7 +505,7 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
 
       {/* Action buttons */}
       <div className="flex justify-between mb-4">
-        <Button onClick={resetItinerary} className="px-8" size="sm">
+        <Button onClick={resetItinerary} className="bg-white text-black border border-gray-300 hover:bg-gray-100">
           Reset Itinerary
         </Button>
       </div>
@@ -645,7 +645,7 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
           </Card>
 
           {/* Activities Panel */}
-          <div className="bg-white rounded-lg border flex flex-col h-full">
+          <div className="bg-white rounded-lg border flex flex-col overflow-hidden">
             <div className="p-4 border-b">
               <h2 className="text-lg font-semibold text-black">Available Activities</h2>
               <p className="text-sm text-black">Drag activities to the calendar to schedule them</p>
@@ -656,7 +656,7 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
                 <div
                   {...provided.droppableProps}
                   ref={provided.innerRef}
-                  className="p-4 grid grid-cols-2 gap-4 overflow-y-auto min-h-0 h-full"
+                  className="p-4 grid grid-cols-2 gap-4 overflow-y-auto min-h-0 flex-1"
                 >
                   {availableActivities.length === 0 ? (
                     <div className="col-span-2 text-center py-8 text-black">
