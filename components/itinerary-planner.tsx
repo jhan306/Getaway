@@ -311,7 +311,6 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
     ...(activitiesByCountry[countryId as keyof typeof activitiesByCountry] || []),
   ])
   const [scheduledActivities, setScheduledActivities] = useState<Record<string, any>>({})
-  const [isGoogleCalendarAuthorized, setIsGoogleCalendarAuthorized] = useState(false)
   const { toast } = useToast()
 
   // Update available activities when country changes
@@ -468,24 +467,6 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
     })
   }
 
-  // Mock function to authorize with Google Calendar
-  const authorizeGoogleCalendar = () => {
-    // In a real implementation, this would redirect to Google OAuth
-    setIsGoogleCalendarAuthorized(true)
-    toast({
-      title: "Google Calendar connected",
-      description: "Your itinerary can now be synced with Google Calendar",
-    })
-  }
-
-  // Mock function to export to Google Calendar
-  const exportToGoogleCalendar = () => {
-    toast({
-      title: "Exported to Google Calendar",
-      description: "Your itinerary has been added to your Google Calendar",
-    })
-  }
-
   // Navigate to previous 3 days
   const previousDays = () => {
     const newDate = new Date(currentDate)
@@ -527,16 +508,6 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
         <Button onClick={resetItinerary} variant="outline" size="sm">
           Reset Itinerary
         </Button>
-
-        {!isGoogleCalendarAuthorized ? (
-          <Button onClick={authorizeGoogleCalendar} variant="outline" size="sm">
-            Connect Google Calendar
-          </Button>
-        ) : (
-          <Button onClick={exportToGoogleCalendar} variant="outline" size="sm">
-            Export to Google Calendar
-          </Button>
-        )}
       </div>
 
       <DragDropContext onDragEnd={onDragEnd}>
@@ -674,7 +645,7 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
           </Card>
 
           {/* Activities Panel */}
-          <div className="bg-white rounded-lg border">
+          <div className="bg-white rounded-lg border flex flex-col overflow-hidden">
             <div className="p-4 border-b">
               <h2 className="text-lg font-semibold text-black">Available Activities</h2>
               <p className="text-sm text-black">Drag activities to the calendar to schedule them</p>
@@ -685,7 +656,7 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
                 <div
                   {...provided.droppableProps}
                   ref={provided.innerRef}
-                  className="p-4 grid grid-cols-2 gap-4 max-h-[calc(100vh-300px)] overflow-y-auto"
+                  className="p-4 grid grid-cols-2 gap-4 flex-1 overflow-y-auto"
                 >
                   {availableActivities.length === 0 ? (
                     <div className="col-span-2 text-center py-8 text-black">
