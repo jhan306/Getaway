@@ -437,7 +437,6 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
       // Remove the activity from available activities
       const newAvailableActivities = [...availableActivities]
       newAvailableActivities.splice(activityIndex, 1)
-      setAvailableActivities(newAvailableActivities)
 
       // Schedule the activity across multiple time slots
       const startIndex = timeSlots.indexOf(timeSlot)
@@ -456,7 +455,11 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
         }
       }
 
-      setScheduledActivities(newScheduledActivities)
+      updateTrip({
+        available:  newAvailableActivities,
+        scheduled:  newScheduledActivities,
+      });
+      
       console.log("AFTER:", newScheduledActivities)
 
       toast({
