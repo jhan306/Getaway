@@ -55,8 +55,7 @@ export default function Home() {
                 <Link href="/itinerary">
                   <Button
                     size="lg"
-                    variant="outline"
-                    className="px-8 text-white !important"
+                    className="px-8"
                   >
                     Plan Your Trip
                   </Button>
