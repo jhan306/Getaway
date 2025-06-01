@@ -320,37 +320,55 @@ const formatTimeRange = (startTime: string, durationHours: number) => {
 }
 
 export default function ItineraryPlanner({ countryId = "greece" }: { countryId?: string }) {
+  const tripFlag = (id: string) =>
+    id === "japan"  ? "🇯🇵"
+    : id === "italy" ? "🇮🇹"
+    : id === "france"? "🇫🇷"
+    : id === "greece"? "🇬🇷"
+    : "🗺️";
+  const makeTrip = (name: string): Trip => ({
+    id: crypto.randomUUID(),                   // built-in UUID
+    name,
+    flag: tripFlag(name.toLowerCase()),
+    available: defaultAvailableActivities,     // or []
+    scheduled: {},
+  });
+  
   const selectedDestination = destinations.find((d) => d.id === countryId) || destinations[0]
 
   const [currentDate, setCurrentDate] = useState(new Date())
   const { toast } = useToast()
 
-  const [trips, setTrips] = useState<Trip[]>([initialTrip])
-  const [currentId, setCurrentId] = useState(initialTrip.id)
-  
-  const currentTrip = trips.find(t => t.id === currentId)!
-  const { available: availableActivities, scheduled: scheduledActivities } = currentTrip;
+  // ---------- trip state ----------
+  const [trips, setTrips] = useState<Trip[]>(() => [makeTrip(countryId)]);
+  const [currentId, setCurrentId] = useState(trips[0].id);
+
+  const updateTrip = (partial: Partial<Trip>) =>
+    setTrips((prev) =>
+      prev.map((t) => (t.id === currentId ? { ...t, ...partial } : t))
+    );
+
+  const currentTrip = trips.find((t) => t.id === currentId)!;
+
+   const {
+    available: availableActivities,
+    scheduled: scheduledActivities,
+  } = currentTrip;
+
   const setAvailableActivities = (newAvail: Activity[]) =>
-  updateTrip({ available: newAvail });
+    updateTrip({ available: newAvail });
 
   const setScheduledActivities = (newSched: ScheduledMap) =>
-  updateTrip({ scheduled: newSched });
-  const addTrip = () => {
-    const name = prompt("Give your trip a name (e.g. Spain 2026)")
-    if (!name) return
-    const newTrip: Trip = {
-      id: uuid(),
-      name,
-      flag: "🗺️",
-      available: defaultAvailableActivities, // or an empty []
-      scheduled: {},
-    }
-    setTrips([...trips, newTrip])
-    setCurrentId(newTrip.id)
-  }
+    updateTrip({ scheduled: newSched });
 
-const updateTrip = (partial: Partial<Trip>) =>
-  setTrips(trips.map(t => t.id === currentId ? { ...t, ...partial } : t))
+  
+  const addTrip = () => {
+    const name = prompt("Give your trip a name (e.g. Spain 2026)")?.trim();
+    if (!name) return;
+    const newTrip = makeTrip(name);
+    setTrips((prev) => [...prev, newTrip]);
+    setCurrentId(newTrip.id);
+  };
 
   // Update available activities when country changes
   useEffect(() => {
