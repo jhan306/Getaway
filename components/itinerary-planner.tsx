@@ -358,7 +358,7 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
   // alias shortcuts the rest of the code already expects
   const { available: availableActivities, scheduled: scheduledActivities } = currentTrip
   const setAvailableActivities = (avail: Activity[]) => updateTrip({ available: avail })
-  const setScheduledActivities = (sched: ScheduledMap) => updateTrip
+  const setScheduledActivities = (sched: ScheduledMap) => updateTrip({ scheduled: sched });
 
 // ----- Add‐trip handler -------------------------------------
   const addTrip = () => {
@@ -527,7 +527,7 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
     }
 
     // Add the activity back to available activities
-    setAvailableActivities((prev) => [...prev, originalActivity])
+    const newAvailableActivities = [...availableActivities, originalActivity];
 
     // Remove from scheduled activities
     const { position, totalSlots } = activity
@@ -540,7 +540,10 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
       delete newScheduledActivities[`${dateStr}-${currentTimeSlot}`]
     }
 
-    setScheduledActivities(newScheduledActivities)
+    updateTrip({
+      available:  newAvailableActivities,
+      scheduled:  newScheduledActivities,
+    });
 
     toast({
       title: "Activity removed",
