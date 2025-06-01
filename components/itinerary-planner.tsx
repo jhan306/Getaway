@@ -327,7 +327,7 @@ const makeTrip = (name: string, startActivities: Activity[] = []): Trip => ({
   id: crypto.randomUUID(),
   name,
   flag: tripFlag(name.toLowerCase()),
-  available: startActivities,
+  available: [...startActivities],
   scheduled: {},
 })
 
