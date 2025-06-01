@@ -8,7 +8,6 @@ import { Globe, ArrowLeft, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
-import ItineraryPlanner from "@/components/itinerary-planner"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 
@@ -259,7 +258,7 @@ export default function CountryPage({ params }: { params: { id: string } }) {
             {/* Main Content */}
             <div>
               <Tabs defaultValue="browse" className="w-full">
-                <TabsList className="grid grid-cols-3 mb-6">
+                <TabsList className="grid grid-cols-2 mb-6">
                   <TabsTrigger
                     value="browse"
                     className="data-[state=active]:bg-amber-200 data-[state=active]:text-black"
@@ -268,12 +267,6 @@ export default function CountryPage({ params }: { params: { id: string } }) {
                   </TabsTrigger>
                   <TabsTrigger value="ask" className="data-[state=active]:bg-amber-200 data-[state=active]:text-black">
                     ask
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="plan-trip"
-                    className="data-[state=active]:bg-amber-200 data-[state=active]:text-black"
-                  >
-                    plan trip
                   </TabsTrigger>
                 </TabsList>
 
@@ -391,10 +384,6 @@ export default function CountryPage({ params }: { params: { id: string } }) {
                       ))}
                     </div>
                   </div>
-                </TabsContent>
-
-                <TabsContent value="plan-trip" className="mt-0">
-                  <ItineraryPlanner countryId={countryId} />
                 </TabsContent>
               </Tabs>
             </div>
