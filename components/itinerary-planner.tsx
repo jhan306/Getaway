@@ -7,6 +7,8 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd"
 import { Card, CardContent } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { ActivityCard } from "@/components/activity-card"
+import { v4 as uuid } from "uuid"     //  npm i uuid
+import { Plus } from "lucide-react"
 
 // Sample destination data
 const destinations = [
@@ -273,6 +275,20 @@ const timeSlots = [
   "8:00 PM",
 ]
 
+const initialTrip: Trip = {
+  id: uuid(),
+  name: countryId ? countryId.charAt(0).toUpperCase() + countryId.slice(1) : "Greece",
+  flag: countryId === "japan"  ? "🇯🇵"
+      : countryId === "italy"  ? "🇮🇹"
+      : countryId === "france" ? "🇫🇷"
+      : "🇬🇷",
+  available: defaultAvailableActivities,   // whatever you already build
+  scheduled: {},                           // empty calendar
+}
+
+
+
+
 // Helper function to format time for display
 const formatTimeRange = (startTime: string, durationHours: number) => {
   const startIndex = timeSlots.indexOf(startTime)
@@ -307,11 +323,34 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
   const selectedDestination = destinations.find((d) => d.id === countryId) || destinations[0]
 
   const [currentDate, setCurrentDate] = useState(new Date())
-  const [availableActivities, setAvailableActivities] = useState([
-    ...(activitiesByCountry[countryId as keyof typeof activitiesByCountry] || []),
-  ])
-  const [scheduledActivities, setScheduledActivities] = useState<Record<string, any>>({})
   const { toast } = useToast()
+
+  const [trips, setTrips] = useState<Trip[]>([initialTrip])
+  const [currentId, setCurrentId] = useState(initialTrip.id)
+  
+  const currentTrip = trips.find(t => t.id === currentId)!
+  const { available: availableActivities, scheduled: scheduledActivities } = currentTrip;
+  const setAvailableActivities = (newAvail: Activity[]) =>
+  updateTrip({ available: newAvail });
+
+  const setScheduledActivities = (newSched: ScheduledMap) =>
+  updateTrip({ scheduled: newSched });
+  const addTrip = () => {
+    const name = prompt("Give your trip a name (e.g. Spain 2026)")
+    if (!name) return
+    const newTrip: Trip = {
+      id: uuid(),
+      name,
+      flag: "🗺️",
+      available: defaultAvailableActivities, // or an empty []
+      scheduled: {},
+    }
+    setTrips([...trips, newTrip])
+    setCurrentId(newTrip.id)
+  }
+
+const updateTrip = (partial: Partial<Trip>) =>
+  setTrips(trips.map(t => t.id === currentId ? { ...t, ...partial } : t))
 
   // Update available activities when country changes
   useEffect(() => {
@@ -362,9 +401,7 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
 
   // Handle drag end event
   const onDragEnd = (result: any) => {
-    console.log("🛑 onDragEnd", result)
     const { source, destination } = result
-    console.log("📍 destination.droppableId =", destination?.droppableId);
 
     // If dropped outside a droppable area
     if (!destination) return
@@ -509,7 +546,33 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
           Reset Itinerary
         </Button>
       </div>
-
+      {/* Trip selector bar */}
+      <div className="flex items-center gap-4 mb-6">
+        {trips.map((trip) => (
+          <button
+            key={trip.id}
+            onClick={() => setCurrentId(trip.id)}
+            className={cn(
+              "flex items-center gap-2 px-4 py-2 rounded-lg",
+              trip.id === currentId ? "bg-amber-200" : "bg-gray-800 text-white/80"
+            )}
+          >
+            <span>{trip.flag}</span>
+            <span className={trip.id === currentId ? "text-black font-medium" : ""}>
+              {trip.name}
+            </span>
+          </button>
+        ))}
+      
+        {/* Add Trip */}
+        <button
+          onClick={addTrip}
+          className="ml-auto flex items-center gap-1 text-sm text-blue-600 hover:underline"
+          title="Add new trip"
+        >
+          <Plus className="h-4 w-4" /> Add trip
+        </button>
+      </div>
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
           {/* Calendar View */}
