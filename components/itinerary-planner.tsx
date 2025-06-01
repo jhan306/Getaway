@@ -17,6 +17,10 @@ const destinations = [
   { id: "japan", name: "Japan", flag: "🇯🇵" },
   { id: "france", name: "France", flag: "🇫🇷" },
 ]
+const durationOptions = [
+  "30 mins","1 hour","1.5 hours","2 hours","2.5 hours","3 hours","3.5 hours","4 hours","4.5 hours",
+  "5 hours","5.5 hours","6 hours","6.5 hours","7 hours","7.5 hours","8 hours"
+];
 
 export type Activity = {
   id: string
@@ -366,11 +370,6 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
   }
   const saveNewActivity = () => {
   if (!newTitle.trim()) return;
-
-  const durationOptions = [
-    "30 mins","1 hour","1.5 hours","2 hours","2.5 hours","3 hours","3.5 hours","4 hours","4.5 hours",
-    "5 hours","5.5 hours","6 hours","6.5 hours","7 hours","7.5 hours","8 hours"
-  ];
   
   const newActivity: Activity = {
     id: crypto.randomUUID(),
