@@ -16,7 +16,7 @@ import {
   TooltipProvider,
 } from "@/components/ui/tooltip"
 import { scaleLog } from "d3-scale"
-import { interpolateYlOrRd } from "d3-scale-chromatic"
+import { interpolateRainbow } from "d3-scale-chromatic"
 
 const geoUrl = "https://unpkg.com/world-atlas@2.0.2/countries-110m.json"
 
@@ -51,7 +51,7 @@ const colorScale = scaleLog().domain([1, 10]).clamp(true).range([0, 1])
 
 const getFillColor = (value?: number) => {
   if (!value || value < 1) return "#f0f0f0"
-  return interpolateYlOrRd(colorScale(value))
+  return interpolateRainbow(colorScale(value))
 }
 
 export default function WorldMap() {
@@ -150,7 +150,7 @@ export default function WorldMap() {
 
       {/* Gradient Legend */}
       <div className="absolute bottom-4 left-4 bg-white p-3 rounded shadow-md text-sm w-[220px]">
-        <div className="mb-1">Submissions (Log Scale)</div>
+        <div className="mb-1">Expertise</div>
         <svg width="200" height="10">
           <defs>
             <linearGradient id="log-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -158,7 +158,7 @@ export default function WorldMap() {
                 <stop
                   key={val}
                   offset={`${(i / 9) * 100}%`}
-                  stopColor={interpolateYlOrRd(colorScale(val))}
+                  stopColor={interpolateRainbow(colorScale(val))}
                 />
               ))}
             </linearGradient>
@@ -166,8 +166,8 @@ export default function WorldMap() {
           <rect width="200" height="10" fill="url(#log-gradient)" />
         </svg>
         <div className="flex justify-between mt-1">
-          <span>1</span>
-          <span>10+</span>
+          <span>Low</span>
+          <span>High</span>
         </div>
       </div>
     </div>
