@@ -7,8 +7,7 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd"
 import { Card, CardContent } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { ActivityCard } from "@/components/activity-card"
-import { v4 as uuid } from "uuid"     //  npm i uuid
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
 // Sample destination data
 const destinations = [
@@ -18,9 +17,23 @@ const destinations = [
   { id: "france", name: "France", flag: "🇫🇷" },
 ]
 const durationOptions = [
-  "30 mins","1 hour","1.5 hours","2 hours","2.5 hours","3 hours","3.5 hours","4 hours","4.5 hours",
-  "5 hours","5.5 hours","6 hours","6.5 hours","7 hours","7.5 hours","8 hours"
-];
+  "30 mins",
+  "1 hour",
+  "1.5 hours",
+  "2 hours",
+  "2.5 hours",
+  "3 hours",
+  "3.5 hours",
+  "4 hours",
+  "4.5 hours",
+  "5 hours",
+  "5.5 hours",
+  "6 hours",
+  "6.5 hours",
+  "7 hours",
+  "7.5 hours",
+  "8 hours",
+]
 
 export type Activity = {
   id: string
@@ -44,7 +57,6 @@ type Trip = {
   available: Activity[]
   scheduled: ScheduledMap
 }
-
 
 // Activity types with their colors
 const activityTypes = {
@@ -304,15 +316,12 @@ const timeSlots = [
 ]
 
 const tripFlag = (id: string) =>
-  id === "japan" ? "🇯🇵" :
-  id === "italy" ? "🇮🇹" :
-  id === "france" ? "🇫🇷" :
-  id === "greece" ? "🇬🇷" : "🗺️"
+  id === "japan" ? "🇯🇵" : id === "italy" ? "🇮🇹" : id === "france" ? "🇫🇷" : id === "greece" ? "🇬🇷" : "🗺️"
 
 const formatTimeRange = (startTime: string, durationHours: number) => {
   const startIndex = timeSlots.indexOf(startTime)
   if (startIndex === -1) return ""
-  const [ , rawHour, rawMin, startPeriod ] = startTime.match(/(\d+):(\d+)\s(AM|PM)/) as RegExpMatchArray
+  const [, rawHour, rawMin, startPeriod] = startTime.match(/(\d+):(\d+)\s(AM|PM)/) as RegExpMatchArray
   let endHour = Number(rawHour) + durationHours
   let endPeriod = startPeriod
   if (startPeriod === "AM" && endHour >= 12) {
@@ -321,11 +330,8 @@ const formatTimeRange = (startTime: string, durationHours: number) => {
   } else if (startPeriod === "PM" && endHour > 12) {
     endHour -= 12
   }
-  return `${rawHour}:${rawMin.padEnd(2,"0")}${startPeriod} - ${endHour}:${rawMin.padEnd(2,"0")}${endPeriod}`
+  return `${rawHour}:${rawMin.padEnd(2, "0")}${startPeriod} - ${endHour}:${rawMin.padEnd(2, "0")}${endPeriod}`
 }
-
-
-
 
 const makeTrip = (name: string, startActivities: Activity[] = []): Trip => ({
   id: crypto.randomUUID(),
@@ -343,57 +349,57 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
   const initialAvail = [...(activitiesByCountry[countryId as keyof typeof activitiesByCountry] || [])]
   const [trips, setTrips] = useState<Trip[]>(() => [makeTrip(countryId, initialAvail)])
   const [currentId, setCurrentId] = useState(trips[0].id)
-  const [isAddOpen, setAddOpen] = useState(false);
-  const [newTitle, setNewTitle] = useState("");
-  const [newLocation, setNewLocation] = useState("");
-  const [newDuration, setNewDuration] = useState("1 hour");
-  const [newTag, setNewTag] = useState<keyof typeof activityTypes>("sightseeing");
-  const [newDescription, setNewDescription] = useState("");
+  const [isAddOpen, setAddOpen] = useState(false)
+  const [newTitle, setNewTitle] = useState("")
+  const [newLocation, setNewLocation] = useState("")
+  const [newDuration, setNewDuration] = useState("1 hour")
+  const [newTag, setNewTag] = useState<keyof typeof activityTypes>("sightseeing")
+  const [newDescription, setNewDescription] = useState("")
 
-  const currentTrip = trips.find(t => t.id === currentId) as Trip
+  const currentTrip = trips.find((t) => t.id === currentId) as Trip
 
   const updateTrip = (partial: Partial<Trip>) =>
-    setTrips(prev => prev.map(t => (t.id === currentId ? { ...t, ...partial } : t)))
+    setTrips((prev) => prev.map((t) => (t.id === currentId ? { ...t, ...partial } : t)))
 
   // alias shortcuts the rest of the code already expects
   const { available: availableActivities, scheduled: scheduledActivities } = currentTrip
   const setAvailableActivities = (avail: Activity[]) => updateTrip({ available: avail })
-  const setScheduledActivities = (sched: ScheduledMap) => updateTrip({ scheduled: sched });
+  const setScheduledActivities = (sched: ScheduledMap) => updateTrip({ scheduled: sched })
 
-// ----- Add‐trip handler -------------------------------------
+  // ----- Add‐trip handler -------------------------------------
   const addTrip = () => {
     const name = prompt("Give your trip a name (e.g. Spain 2026)")?.trim()
     if (!name) return
     const newTrip = makeTrip(name)
-    setTrips(prev => [...prev, newTrip])
+    setTrips((prev) => [...prev, newTrip])
     setCurrentId(newTrip.id)
   }
   const saveNewActivity = () => {
-  if (!newTitle.trim()) return;
-  
-  const newActivity: Activity = {
-    id: crypto.randomUUID(),
-    name: newTitle.trim(),
-    image: "/placeholder.svg?height=200&width=300",  // or let users upload later
-    duration: newDuration,
-    location: newLocation.trim() || "Unknown",
-    description: newDescription.trim(),
-    type: newTag,
-    physicalRating: 1,
-    scenicRating: 1,
-    culturalRating: 1,
-  };
-    setAvailableActivities([...availableActivities, newActivity]);
+    if (!newTitle.trim()) return
 
-  // reset + close dialog
-    setNewTitle("");
-    setNewLocation("");
-    setNewDuration("1 hour");
-    setNewTag("sightseeing");
-    setNewDescription("");
-    setAddOpen(false);
-  };
-  
+    const newActivity: Activity = {
+      id: crypto.randomUUID(),
+      name: newTitle.trim(),
+      image: "/placeholder.svg?height=200&width=300", // or let users upload later
+      duration: newDuration,
+      location: newLocation.trim() || "Unknown",
+      description: newDescription.trim(),
+      type: newTag,
+      physicalRating: 1,
+      scenicRating: 1,
+      culturalRating: 1,
+    }
+    setAvailableActivities([...availableActivities, newActivity])
+
+    // reset + close dialog
+    setNewTitle("")
+    setNewLocation("")
+    setNewDuration("1 hour")
+    setNewTag("sightseeing")
+    setNewDescription("")
+    setAddOpen(false)
+  }
+
   useEffect(() => {
     setAvailableActivities([...(activitiesByCountry[countryId as keyof typeof activitiesByCountry] || [])])
     setScheduledActivities({})
@@ -450,7 +456,7 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
 
     // If dropped in the calendar
     if (destination.droppableId.startsWith("calendar|")) {
-      const [, dateStr, timeSlot] = destination.droppableId.split("|");
+      const [, dateStr, timeSlot] = destination.droppableId.split("|")
       const activityId = result.draggableId
 
       // Find the activity in available activities
@@ -492,10 +498,10 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
       }
 
       updateTrip({
-        available:  newAvailableActivities,
-        scheduled:  newScheduledActivities,
-      });
-      
+        available: newAvailableActivities,
+        scheduled: newScheduledActivities,
+      })
+
       console.log("AFTER:", newScheduledActivities)
 
       toast({
@@ -527,7 +533,7 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
     }
 
     // Add the activity back to available activities
-    const newAvailableActivities = [...availableActivities, originalActivity];
+    const newAvailableActivities = [...availableActivities, originalActivity]
 
     // Remove from scheduled activities
     const { position, totalSlots } = activity
@@ -541,9 +547,9 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
     }
 
     updateTrip({
-      available:  newAvailableActivities,
-      scheduled:  newScheduledActivities,
-    });
+      available: newAvailableActivities,
+      scheduled: newScheduledActivities,
+    })
 
     toast({
       title: "Activity removed",
@@ -601,16 +607,14 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
             onClick={() => setCurrentId(trip.id)}
             className={cn(
               "flex items-center gap-2 px-4 py-2 rounded-lg",
-              trip.id === currentId ? "bg-amber-200" : "bg-gray-800 text-white/80"
+              trip.id === currentId ? "bg-amber-200" : "bg-gray-800 text-white/80",
             )}
           >
             <span>{trip.flag}</span>
-            <span className={trip.id === currentId ? "text-black font-medium" : ""}>
-              {trip.name}
-            </span>
+            <span className={trip.id === currentId ? "text-black font-medium" : ""}>{trip.name}</span>
           </button>
         ))}
-      
+
         {/* Add Trip */}
         <button
           onClick={addTrip}
@@ -624,7 +628,7 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
             <div className="bg-white rounded-lg w-full max-w-md p-6 space-y-4">
               <h3 className="text-lg font-semibold">New Activity</h3>
-        
+
               <input
                 type="text"
                 placeholder="Title"
@@ -632,7 +636,7 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
                 onChange={(e) => setNewTitle(e.target.value)}
                 className="w-full border rounded p-2 text-sm"
               />
-        
+
               <input
                 type="text"
                 placeholder="Location"
@@ -640,17 +644,19 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
                 onChange={(e) => setNewLocation(e.target.value)}
                 className="w-full border rounded p-2 text-sm"
               />
-        
+
               <select
                 value={newDuration}
                 onChange={(e) => setNewDuration(e.target.value)}
                 className="w-full border rounded p-2 text-sm"
               >
                 {durationOptions.map((opt) => (
-                  <option key={opt} value={opt}>{opt}</option>
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
                 ))}
-            </select>
-        
+              </select>
+
               {/* Tag picker */}
               <div className="flex flex-wrap gap-2">
                 {Object.entries(activityTypes).map(([key, { name, color }]) => (
@@ -666,30 +672,26 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
                   </button>
                 ))}
               </div>
-        
+
               <textarea
                 placeholder="Description (optional)"
                 value={newDescription}
                 onChange={(e) => setNewDescription(e.target.value)}
                 className="w-full border rounded p-2 text-sm h-20"
               />
-        
+
               {/* Dialog actions */}
               <div className="flex justify-end gap-2 pt-2">
                 <Button variant="ghost" size="sm" onClick={() => setAddOpen(false)}>
                   Cancel
                 </Button>
-                <Button
-                  size="sm"
-                  onClick={saveNewActivity}
-                  disabled={!newTitle.trim()}
-                >
+                <Button size="sm" onClick={saveNewActivity} disabled={!newTitle.trim()}>
                   Save
                 </Button>
               </div>
             </div>
           </div>
-        )}        
+        )}
       </div>
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="grid gap-6 lg:grid-cols-[1fr_400px]">
@@ -748,7 +750,7 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
                             <div
                               key={timeIndex}
                               className="h-16 border-b border-gray-200 last:border-b-0 relative"
-                              style={{ overflow: 'visible' }}
+                              style={{ overflow: "visible" }}
                             />
                           )
                         }
@@ -832,7 +834,7 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
                 <h2 className="text-lg font-semibold text-black">Available Activities</h2>
                 <p className="text-sm text-black">Drag activities to the calendar to schedule them</p>
               </div>
-            
+
               {/* ➕ Add Activity */}
               <Button
                 size="sm"
@@ -842,7 +844,6 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
                 <Plus className="h-4 w-4 mr-1" /> Add
               </Button>
             </div>
-
 
             <Droppable droppableId="activities" isDropDisabled={false}>
               {(provided) => (
