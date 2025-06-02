@@ -19,21 +19,25 @@ const countryData = {
         id: "q1",
         text: "What's the best time to visit Athens?",
         highlighted: false,
+        replies:[]
       },
       {
         id: "q2",
         text: "How many days should I spend in Santorini?",
         highlighted: true,
+        replies:[]
       },
       {
         id: "q3",
         text: "Is it worth visiting Meteora?",
         highlighted: false,
+        replies:[]
       },
       {
         id: "q4",
         text: "Best restaurants in Athens?",
         highlighted: false,
+        replies:[]
       },
     ],
   },
@@ -68,6 +72,7 @@ export default function AskPage({ params }: { params: { id: string } }) {
   const [selectedSortOption, setSelectedSortOption] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [newQuestion, setNewQuestion] = useState("")
+  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
 
   if (!country) {
     return <div>Country not found</div>
@@ -100,7 +105,15 @@ export default function AskPage({ params }: { params: { id: string } }) {
     // Show confirmation
     alert(`Your question about ${country.name} has been posted!`)
   }
-
+  const handlePostReply = (q: Question) => {
+    const draft = replyDrafts[q.id]?.trim();
+    if (!draft) return;
+  
+    q.replies.unshift({ id: `r${q.replies.length + 1}`, text: draft });
+    // clear the textarea for this question
+    setReplyDrafts((d) => ({ ...d, [q.id]: "" }));
+  };
+  
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       {/* Navigation */}
@@ -236,36 +249,54 @@ export default function AskPage({ params }: { params: { id: string } }) {
                 </div>
 
                 <div className="max-h-[400px] overflow-y-auto pr-2">
-                  {filteredQuestions.map((question) => (
+                  {filteredQuestions.map((q) => (
                     <div
-                      key={question.id}
-                      className={`rounded-lg p-4 mb-3 ${question.highlighted ? "bg-gray-500" : "bg-gray-200"}`}
+                      key={q.id}
+                      className={`rounded-lg p-4 mb-3 ${q.highlighted ? "bg-gray-500" : "bg-gray-200"}`}
                     >
+                      {/* QUESTION text + highlight toggle */}
                       <div className="flex justify-between items-start">
-                        <h3 className={`text-lg font-medium text-black`}>{question.text}</h3>
+                        <h3 className="text-lg font-medium text-black">{q.text}</h3>
+                  
+                        {/* ⭐ highlight toggle only */}
                         <button
-                          className={`rounded-full p-1 ${question.highlighted ? "bg-white" : "bg-gray-300"}`}
+                          className="rounded-full p-1 bg-gray-300"
                           onClick={() => {
-                            question.highlighted = !question.highlighted
-                            // Force a re-render
-                            setNewQuestion((n) => n + " ")
-                            setNewQuestion((n) => n.trim())
+                            q.highlighted = !q.highlighted;
+                            // force re-render
+                            setSearchQuery((s) => s + " ").trim();
                           }}
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill={question.highlighted ? "currentColor" : "none"}
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
-                          </svg>
+                          {q.highlighted ? "★" : "☆"}
                         </button>
+                      </div>
+                  
+                      {/* REPLIES */}
+                      <div className="mt-3 space-y-2">
+                        {q.replies.map((r) => (
+                          <div key={r.id} className="bg-white rounded px-3 py-2 text-sm text-black">
+                            {r.text}
+                          </div>
+                        ))}
+                  
+                        {/* Reply composer */}
+                        <textarea
+                          rows={2}
+                          placeholder="Write a reply…"
+                          className="w-full bg-white border rounded p-2 text-sm"
+                          value={replyDrafts[q.id] ?? ""}
+                          onChange={(e) =>
+                            setReplyDrafts((d) => ({ ...d, [q.id]: e.target.value }))
+                          }
+                        />
+                        <Button
+                          size="sm"
+                          className="mt-1 bg-amber-200 text-black hover:bg-amber-300"
+                          disabled={!(replyDrafts[q.id] || "").trim()}
+                          onClick={() => handlePostReply(q as any)}
+                        >
+                          Post reply
+                        </Button>
                       </div>
                     </div>
                   ))}
