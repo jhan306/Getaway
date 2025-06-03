@@ -14,7 +14,7 @@ const config: Config = {
         background: "#ffffff",
         primary: {
           DEFAULT: "#000000",           // black background
-          foreground: "#ffffff",       // white text
+          "primary-foreground": "#ffffff",       // white text
         },
         card: {
           DEFAULT: 'hsl(var(--card))',
