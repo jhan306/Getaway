@@ -23,12 +23,12 @@ export default function Home() {
               </div>
               <div className="flex flex-col gap-2 min-[400px]:flex-row">
                 <Link href="/map">
-                  <Button size="lg" className="px-8">
+                  <Button size="lg" variant="default" className="px-8">
                     Explore the Map
                   </Button>
                 </Link>
                 <Link href="/itinerary">
-                  <Button size="lg" className="px-8">
+                  <Button size="lg" variant="default" className="px-8">
                     Plan Your Trip
                   </Button>
                 </Link>
@@ -111,7 +111,7 @@ export default function Home() {
           </div>
           <div className="flex flex-col gap-2 min-[400px]:flex-row justify-center lg:justify-end">
             <Link href="/map">
-              <Button size="lg" className="px-8">
+              <Button size="lg" variant="default" className="px-8">
                 Explore the Map
               </Button>
             </Link>
