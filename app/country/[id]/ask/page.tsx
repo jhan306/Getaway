@@ -67,6 +67,8 @@ const countryData = {
 export default function AskPage({ params }: { params: { id: string } }) {
   const countryId = params.id
   const country = countryData[countryId as keyof typeof countryData]
+  if (!country) return <div>Country not found</div>;
+  const [questions, setQuestions] = useState(() => [...country.questions]);
 
   const [selectedCity, setSelectedCity] = useState<string | null>(null)
   const [selectedSortOption, setSelectedSortOption] = useState<string | null>(null)
@@ -74,46 +76,38 @@ export default function AskPage({ params }: { params: { id: string } }) {
   const [newQuestion, setNewQuestion] = useState("")
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
 
-  if (!country) {
-    return <div>Country not found</div>
-  }
-
   // Filter questions based on search query
-  const filteredQuestions = country.questions.filter((question) => {
-    if (searchQuery && !question.text.toLowerCase().includes(searchQuery.toLowerCase())) {
-      return false
-    }
-    return true
-  })
+  const filteredQuestions = questions.filter((q) =>
+    q.text.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handlePostQuestion = () => {
-    if (!newQuestion.trim()) return
-
-    // Create a new question object
-    const newQuestionObj = {
-      id: `q${country.questions.length + 1}`,
-      text: newQuestion,
+    if (!newQuestion.trim()) return;
+  
+    const newQ = {
+      id: `q${questions.length + 1}`,
+      text: newQuestion.trim(),
       highlighted: false,
       replies: [],
-    }
+    };
+  
+    setQuestions([newQ, ...questions]);
+    setNewQuestion("");
+    alert(`Your question about ${country.name} has been posted!`);
+  };
 
-    // Add the new question to the beginning of the array
-    country.questions.unshift(newQuestionObj)
-
-    // Clear the input
-    setNewQuestion("")
-
-    // Show confirmation
-    alert(`Your question about ${country.name} has been posted!`)
-  }
-  const handlePostReply = (q: any) => {
-    const draft = replyDrafts[q.id]?.trim();
+  const handlePostReply = (qId: string) => {
+    const draft = replyDrafts[qId]?.trim();
     if (!draft) return;
   
-    q.replies.unshift({ id: `r${q.replies.length + 1}`, text: draft });
-    // clear the textarea for this question
-    setReplyDrafts((d) => ({ ...d, [q.id]: "" }));
-    country.questions = [...country.questions];
+    setQuestions((prev) =>
+      prev.map((q) =>
+        q.id === qId
+          ? { ...q, replies: [{ id: `r${q.replies.length + 1}`, text: draft }, ...q.replies] }
+          : q
+      )
+    );
+    setReplyDrafts((d) => ({ ...d, [qId]: "" }));
   };
   
   return (
@@ -263,43 +257,44 @@ export default function AskPage({ params }: { params: { id: string } }) {
                         {/* ⭐ highlight toggle only */}
                         <button
                           className="rounded-full p-1 bg-gray-300"
-                          onClick={() => {
-                            q.highlighted = !q.highlighted;
-                            // force re-render
-                            setSearchQuery((s) => s + " ").trim();
-                          }}
+                          onClick={() =>
+                            setQuestions((prev) =>
+                              prev.map((item) =>
+                                item.id === q.id ? { ...item, highlighted: !item.highlighted } : item
+                              )
+                            )
+                          }
                         >
                           {q.highlighted ? "★" : "☆"}
                         </button>
                       </div>
                   
                       {/* REPLIES */}
-                      <div className="mt-3 space-y-2">
-                        {q.replies.map((r) => (
-                          <div key={r.id} className="bg-white rounded px-3 py-2 text-sm text-black">
-                            {r.text}
-                          </div>
-                        ))}
-                  
-                        {/* Reply composer */}
-                        <textarea
-                          rows={2}
-                          placeholder="Write a reply…"
-                          className="w-full bg-white border rounded p-2 text-sm"
-                          value={replyDrafts[q.id] ?? ""}
-                          onChange={(e) =>
-                            setReplyDrafts((d) => ({ ...d, [q.id]: e.target.value }))
-                          }
-                        />
-                        <Button
-                          size="sm"
-                          className="mt-1 bg-amber-200 text-black hover:bg-amber-300"
-                          disabled={!(replyDrafts[q.id] || "").trim()}
-                          onClick={() => handlePostReply(q as any)}
-                        >
-                          Post reply
-                        </Button>
-                      </div>
+                        <div className="mt-3 space-y-2">
+                          {q.replies.map((r) => (
+                            <div key={r.id} className="bg-white rounded px-3 py-2 text-sm text-black">
+                              {r.text}
+                            </div>
+                          ))}
+                        
+                          <textarea
+                            rows={2}
+                            className="w-full bg-white border rounded p-2 text-sm"
+                            placeholder="Write a reply…"
+                            value={replyDrafts[q.id] ?? ""}
+                            onChange={(e) =>
+                              setReplyDrafts((d) => ({ ...d, [q.id]: e.target.value }))
+                            }
+                          />
+                          <Button
+                            size="sm"
+                            className="mt-1 bg-amber-200 text-black hover:bg-amber-300"
+                            disabled={!(replyDrafts[q.id] || "").trim()}
+                            onClick={() => handlePostReply(q.id)}
+                          >
+                            Post reply
+                          </Button>
+                        </div>
                     </div>
                   ))}
                 </div>
