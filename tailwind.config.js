@@ -11,6 +11,7 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        background: "#ffffff",
         primary: {
           DEFAULT: "#000000",           // black background
           foreground: "#ffffff",       // white text
