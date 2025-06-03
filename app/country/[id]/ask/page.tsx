@@ -94,6 +94,7 @@ export default function AskPage({ params }: { params: { id: string } }) {
       id: `q${country.questions.length + 1}`,
       text: newQuestion,
       highlighted: false,
+      replies: [],
     }
 
     // Add the new question to the beginning of the array
@@ -105,13 +106,14 @@ export default function AskPage({ params }: { params: { id: string } }) {
     // Show confirmation
     alert(`Your question about ${country.name} has been posted!`)
   }
-  const handlePostReply = (q: Question) => {
+  const handlePostReply = (q: any) => {
     const draft = replyDrafts[q.id]?.trim();
     if (!draft) return;
   
     q.replies.unshift({ id: `r${q.replies.length + 1}`, text: draft });
     // clear the textarea for this question
     setReplyDrafts((d) => ({ ...d, [q.id]: "" }));
+    country.questions = [...country.questions];
   };
   
   return (
