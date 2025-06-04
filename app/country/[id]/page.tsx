@@ -125,6 +125,10 @@ export default function CountryPage({ params }: { params: { id: string } }) {
   if (!country) {
     return <div>Country not found</div>
   }
+  const [questions, setQuestions] = useState(() =>
+    country.questions.map((q) => ({ ...q, replies: q.replies ?? [] }))
+  );
+  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
 
   // Filter destinations based on selected city, sort option, and search query
   const filteredDestinations = country.destinations.filter((destination) => {
@@ -146,36 +150,45 @@ export default function CountryPage({ params }: { params: { id: string } }) {
   })
 
   // Filter questions based on search query
-  const filteredQuestions = country.questions.filter((question) => {
-    if (searchQuery && !question.text.toLowerCase().includes(searchQuery.toLowerCase())) {
-      return false
-    }
-    return true
-  })
+  const filteredQuestions = questions.filter((q) =>
+    q.text.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-  // Handle posting a new question
   const handlePostQuestion = () => {
-    if (!newQuestion.trim()) return
-
-    // Create a new question object
-    const newQuestionObj = {
-      id: `q${country.questions.length + 1}`,
-      text: newQuestion,
+    if (!newQuestion.trim()) return;
+  
+    const newQ = {
+      id: `q${questions.length + 1}`,
+      text: newQuestion.trim(),
       highlighted: false,
-    }
+      replies: [],
+    };
+  
+    setQuestions([newQ, ...questions]);
+    setNewQuestion("");
+    toast({ title: "Question posted", description: "Added to forum." });
+  };
 
-    // Add the new question to the beginning of the array
-    country.questions.unshift(newQuestionObj)
-
-    // Clear the input
-    setNewQuestion("")
-
-    toast({
-      title: "Question posted",
-      description: "Your question has been added to the community forum.",
-    })
-  }
-
+  const handlePostReply = (qId: string) => {
+    const draft = replyDrafts[qId]?.trim();
+    if (!draft) return;
+  
+    setQuestions((prev) =>
+      prev.map((q) =>
+        q.id === qId
+          ? {
+              ...q,
+              replies: [
+                { id: `r${q.replies.length + 1}`, text: draft },
+                ...q.replies,
+              ],
+            }
+          : q
+      )
+    );
+    setReplyDrafts((d) => ({ ...d, [qId]: "" }));
+  };
+  
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 text-black">
       {/* Navigation */}
@@ -347,41 +360,65 @@ export default function CountryPage({ params }: { params: { id: string } }) {
                     </div>
 
                     <div className="max-h-[400px] overflow-y-auto pr-2">
-                      {filteredQuestions.map((question) => (
+                      {filteredQuestions.map((q) => (
                         <div
-                          key={question.id}
-                          className={`rounded-lg p-4 mb-3 ${question.highlighted ? "bg-gray-500" : "bg-gray-200"}`}
+                          key={q.id}
+                          className={`rounded-lg p-4 mb-3 ${
+                            q.highlighted ? "bg-gray-500" : "bg-gray-200"
+                          }`}
                         >
+                          {/* question + star */}
                           <div className="flex justify-between items-start">
-                            <h3 className={`text-lg font-medium ${question.highlighted ? "text-white" : "text-black"}`}>
-                              {question.text}
-                            </h3>
+                            <h3 className="text-lg font-medium text-black">{q.text}</h3>
                             <button
-                              className={`rounded-full p-1 ${question.highlighted ? "bg-white" : "bg-gray-300"}`}
-                              onClick={() => {
-                                question.highlighted = !question.highlighted
-                                // Force a re-render
-                                setNewQuestion((s) => s + " ")
-                                setNewQuestion((s) => s.trim())
-                              }}
+                              className="rounded-full p-1 bg-gray-300"
+                              onClick={() =>
+                                setQuestions((prev) =>
+                                  prev.map((item) =>
+                                    item.id === q.id
+                                      ? { ...item, highlighted: !item.highlighted }
+                                      : item
+                                  )
+                                )
+                              }
                             >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill={question.highlighted ? "currentColor" : "none"}
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
-                              </svg>
+                              {q.highlighted ? "★" : "☆"}
                             </button>
+                          </div>
+                      
+                          {/* replies */}
+                          <div className="mt-3 space-y-2">
+                            {q.replies.map((r) => (
+                              <div
+                                key={r.id}
+                                className="bg-white rounded px-3 py-2 text-sm text-black"
+                              >
+                                {r.text}
+                              </div>
+                            ))}
+                      
+                            {/* composer */}
+                            <textarea
+                              rows={2}
+                              className="w-full bg-white border rounded p-2 text-sm"
+                              placeholder="Write a reply…"
+                              value={replyDrafts[q.id] ?? ""}
+                              onChange={(e) =>
+                                setReplyDrafts((d) => ({ ...d, [q.id]: e.target.value }))
+                              }
+                            />
+                            <Button
+                              size="sm"
+                              className="mt-1 bg-amber-200 text-black hover:bg-amber-300"
+                              disabled={!(replyDrafts[q.id] || "").trim()}
+                              onClick={() => handlePostReply(q.id)}
+                            >
+                              Post reply
+                            </Button>
                           </div>
                         </div>
                       ))}
+
                     </div>
                   </div>
                 </TabsContent>
