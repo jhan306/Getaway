@@ -68,7 +68,9 @@ export default function AskPage({ params }: { params: { id: string } }) {
   const countryId = params.id
   const country = countryData[countryId as keyof typeof countryData]
   if (!country) return <div>Country not found</div>;
-  const [questions, setQuestions] = useState(() => [...country.questions]);
+  const [questions, setQuestions] = useState(() =>
+    country.questions.map((q) => ({ ...q, replies: q.replies ?? [] }))
+  );
 
   const [selectedCity, setSelectedCity] = useState<string | null>(null)
   const [selectedSortOption, setSelectedSortOption] = useState<string | null>(null)
