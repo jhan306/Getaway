@@ -166,12 +166,7 @@ export default function CountryPage({ params }: { params: { id: string } }) {
         replies (
           id,
           text,
-          created_at,
-          user_id (
-            id,
-            email,
-            user_metadata
-          )
+          created_at
         )
         
       `)
