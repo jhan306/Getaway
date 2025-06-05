@@ -236,6 +236,42 @@ export default function CountryPage({ params }: { params: { id: string } }) {
     }
   };
 
+  /* delete a question */
+  const deleteQuestion = async (qId: string) => {
+    const { error } = await supabase.from("questions").delete().eq("id", qId);
+    if (error) {
+      toast({
+        title: "Could not delete question",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Question deleted",
+        variant: "default",
+      });
+      mutate();
+    }
+  };
+
+  /* delete a reply */
+  const deleteReply = async (replyId: string) => {
+    const { error } = await supabase.from("replies").delete().eq("id", replyId);
+    if (error) {
+      toast({
+        title: "Could not delete reply",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Reply deleted",
+        variant: "default",
+      });
+      mutate();
+    }
+  };
+
   // ⚠️ Here's the guard: don't call .filter on `questions` until it's actually an array.
   const filteredQuestions = Array.isArray(questions)
     ? questions.filter((q: any) =>
@@ -454,18 +490,30 @@ export default function CountryPage({ params }: { params: { id: string } }) {
                               <div className="mt-1">{q.text}</div>
                             </div>
 
-                            <button
-                              className="rounded-full p-1 bg-gray-300"
-                              onClick={async () => {
-                                await supabase
-                                  .from("questions")
-                                  .update({ highlighted: !q.highlighted })
-                                  .eq("id", q.id);
-                                mutate();
-                              }}
-                            >
-                              {q.highlighted ? "★" : "☆"}
-                            </button>
+                            <div className="flex gap-2 items-center">
+                              <button
+                                className="rounded-full p-1 bg-gray-300"
+                                onClick={async () => {
+                                  await supabase
+                                    .from("questions")
+                                    .update({ highlighted: !q.highlighted })
+                                    .eq("id", q.id);
+                                  mutate();
+                                }}
+                              >
+                                {q.highlighted ? "★" : "☆"}
+                              </button>
+                              {q.user?.id === currentUser?.id && (
+                                <Button
+                                  size="icon"
+                                  variant="outline"
+                                  className="text-red-600 hover:text-red-700"
+                                  onClick={() => deleteQuestion(q.id)}
+                                >
+                                  🗑️
+                                </Button>
+                              )}
+                            </div>
                           </div>
 
                           {/* replies */}
@@ -473,12 +521,24 @@ export default function CountryPage({ params }: { params: { id: string } }) {
                             {q.replies?.map((r: any) => (
                               <div
                                 key={r.id}
-                                className="bg-white rounded px-3 py-2 text-sm"
+                                className="bg-white rounded px-3 py-2 text-sm flex justify-between items-center"
                               >
-                                <strong className="mr-2">
-                                  {r.user?.full_name ?? "anon"}
-                                </strong>
-                                <div className="mt-1">{r.text}</div>
+                                <div>
+                                  <strong className="mr-2">
+                                    {r.user?.full_name ?? "anon"}
+                                  </strong>
+                                  <div className="mt-1">{r.text}</div>
+                                </div>
+                                {r.user?.id === currentUser?.id && (
+                                  <Button
+                                    size="icon"
+                                    variant="outline"
+                                    className="text-red-600 hover:text-red-700 ml-2"
+                                    onClick={() => deleteReply(r.id)}
+                                  >
+                                    🗑️
+                                  </Button>
+                                )}
                               </div>
                             ))}
 
