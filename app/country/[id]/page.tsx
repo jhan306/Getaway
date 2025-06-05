@@ -173,7 +173,7 @@ export default function CountryPage({ params }: { params: { id: string } }) {
             user_metadata
           )
         )
-        )
+        
       `)
       .eq("country_slug", countrySlug)
       .order("created_at", { ascending: false });
