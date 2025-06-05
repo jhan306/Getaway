@@ -389,8 +389,10 @@ export default function ItineraryPlanner({
     );
 
   // alias shortcuts the rest of the code already expects
-  const { available: availableActivities, scheduled: scheduledActivities } =
-    currentTrip;
+  const {
+    available: availableActivities = [],
+    scheduled: scheduledActivities = {},
+  } = currentTrip || {};
   const setAvailableActivities = (avail: Activity[]) =>
     updateTrip({ available: avail });
   const setScheduledActivities = (sched: ScheduledMap) =>
