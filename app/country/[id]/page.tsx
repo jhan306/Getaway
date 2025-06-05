@@ -10,6 +10,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
+import useSWR from 'swr';
+import { supabase } from '@/lib/supabaseClient';
 
 // Country data
 const countryData = {
@@ -62,28 +64,6 @@ const countryData = {
         type: "Landmarks",
       },
     ],
-    questions: [
-      {
-        id: "q1",
-        text: "What's the best time to visit Athens?",
-        highlighted: false,
-      },
-      {
-        id: "q2",
-        text: "How many days should I spend in Santorini?",
-        highlighted: true,
-      },
-      {
-        id: "q3",
-        text: "Is it worth visiting Meteora?",
-        highlighted: false,
-      },
-      {
-        id: "q4",
-        text: "Best restaurants in Athens?",
-        highlighted: false,
-      },
-    ],
   },
   italy: {
     name: "Italy",
@@ -112,6 +92,7 @@ const countryData = {
 }
 
 export default function CountryPage({ params }: { params: { id: string } }) {
+  const countrySlug = params.id;
   const router = useRouter()
   const countryId = params.id
   const country = countryData[countryId as keyof typeof countryData]
@@ -125,9 +106,7 @@ export default function CountryPage({ params }: { params: { id: string } }) {
   if (!country) {
     return <div>Country not found</div>
   }
-  const [questions, setQuestions] = useState(() =>
-    country.questions.map((q) => ({ ...q, replies: q.replies ?? [] }))
-  );
+  
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
 
   // Filter destinations based on selected city, sort option, and search query
@@ -149,45 +128,62 @@ export default function CountryPage({ params }: { params: { id: string } }) {
     return true
   })
 
-  // Filter questions based on search query
+  const { data: questions, error, isLoading, mutate } = useSWR(
+    ['questions', countrySlug],                      //  ← cache-key
+    async () => {
+      const { data, error } = await supabase
+        .from('questions')
+        .select(`
+          id, text, highlighted, created_at,
+          profiles:profiles!inner(username, avatar_url),
+          replies (
+            id, text, created_at,
+            profiles:profiles!inner(username, avatar_url)
+          )
+        `)
+        .eq('country_slug', countrySlug)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    }
+  );
+
+
+  /* post a new question */
+  const postQuestion = async () => {
+    if (!newQuestion.trim()) return;
+  
+    await supabase.from('questions').insert({
+      country_slug: countrySlug,
+      text: newQuestion.trim(),
+      highlighted: false,
+    });
+  
+    setNewQuestion('');
+    mutate();                      // reload list
+  };
+
+  /* post a reply */
+  const postReply = async (qId: string) => {
+    const draft = replyDrafts[qId]?.trim();
+    if (!draft) return;
+  
+    await supabase.from('replies').insert({
+      question_id: qId,
+      text: draft,
+    });
+  
+    setReplyDrafts((d) => ({ ...d, [qId]: '' }));
+    mutate();
+  };
+
   const filteredQuestions = questions.filter((q) =>
     q.text.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handlePostQuestion = () => {
-    if (!newQuestion.trim()) return;
-  
-    const newQ = {
-      id: `q${questions.length + 1}`,
-      text: newQuestion.trim(),
-      highlighted: false,
-      replies: [],
-    };
-  
-    setQuestions([newQ, ...questions]);
-    setNewQuestion("");
-    toast({ title: "Question posted", description: "Added to forum." });
-  };
-
-  const handlePostReply = (qId: string) => {
-    const draft = replyDrafts[qId]?.trim();
-    if (!draft) return;
-  
-    setQuestions((prev) =>
-      prev.map((q) =>
-        q.id === qId
-          ? {
-              ...q,
-              replies: [
-                { id: `r${q.replies.length + 1}`, text: draft },
-                ...q.replies,
-              ],
-            }
-          : q
-      )
-    );
-    setReplyDrafts((d) => ({ ...d, [qId]: "" }));
-  };
+  if (error) return <div className="p-4 text-red-500">Error loading feed</div>;
+  if (isLoading || !questions)
+    return <div className="p-4 text-gray-500">Loading…</div>;
   
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 text-black">
@@ -352,7 +348,7 @@ export default function CountryPage({ params }: { params: { id: string } }) {
                       />
                       <Button
                         className="mt-4 bg-amber-200 text-black hover:bg-amber-300"
-                        onClick={handlePostQuestion}
+                        onClick={postQuestion}
                         disabled={!newQuestion.trim()}
                       >
                         Post Question
@@ -360,65 +356,58 @@ export default function CountryPage({ params }: { params: { id: string } }) {
                     </div>
 
                     <div className="max-h-[400px] overflow-y-auto pr-2">
-                      {filteredQuestions.map((q) => (
-                        <div
-                          key={q.id}
-                          className={`rounded-lg p-4 mb-3 ${
-                            q.highlighted ? "bg-gray-500" : "bg-gray-200"
-                          }`}
-                        >
-                          {/* question + star */}
-                          <div className="flex justify-between items-start">
-                            <h3 className="text-lg font-medium text-black">{q.text}</h3>
+                      {questions.map((q: any) => (
+                        <div key={q.id} className="rounded-lg p-4 mb-3 bg-gray-200">
+                          {/* question header */}
+                          <div className="flex justify-between">
+                            <div>
+                              <span className="font-medium mr-2">{q.profiles?.username ?? 'anon'}</span>
+                              {q.text}
+                            </div>
+                    
                             <button
                               className="rounded-full p-1 bg-gray-300"
-                              onClick={() =>
-                                setQuestions((prev) =>
-                                  prev.map((item) =>
-                                    item.id === q.id
-                                      ? { ...item, highlighted: !item.highlighted }
-                                      : item
-                                  )
-                                )
-                              }
+                              onClick={async () => {
+                                await supabase                        // toggle highlight on the server
+                                  .from('questions')
+                                  .update({ highlighted: !q.highlighted })
+                                  .eq('id', q.id);
+                                mutate();
+                              }}
                             >
-                              {q.highlighted ? "★" : "☆"}
+                              {q.highlighted ? '★' : '☆'}
                             </button>
-                          </div>
-                      
+                          </div>         
                           {/* replies */}
                           <div className="mt-3 space-y-2">
-                            {q.replies.map((r) => (
-                              <div
-                                key={r.id}
-                                className="bg-white rounded px-3 py-2 text-sm text-black"
-                              >
+                            {q.replies.map((r: any) => (
+                              <div key={r.id} className="bg-white rounded px-3 py-2 text-sm">
+                                <strong className="mr-2">{r.profiles?.username ?? 'anon'}</strong>
                                 {r.text}
                               </div>
                             ))}
-                      
+                    
                             {/* composer */}
                             <textarea
                               rows={2}
                               className="w-full bg-white border rounded p-2 text-sm"
                               placeholder="Write a reply…"
-                              value={replyDrafts[q.id] ?? ""}
+                              value={replyDrafts[q.id] ?? ''}
                               onChange={(e) =>
                                 setReplyDrafts((d) => ({ ...d, [q.id]: e.target.value }))
                               }
                             />
                             <Button
                               size="sm"
-                              className="mt-1 bg-amber-200 text-black hover:bg-amber-300"
-                              disabled={!(replyDrafts[q.id] || "").trim()}
-                              onClick={() => handlePostReply(q.id)}
+                              className="mt-1 bg-amber-200 text-black"
+                              disabled={!(replyDrafts[q.id] || '').trim()}
+                              onClick={() => postReply(q.id)}
                             >
                               Post reply
                             </Button>
                           </div>
                         </div>
                       ))}
-
                     </div>
                   </div>
                 </TabsContent>
