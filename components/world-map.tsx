@@ -21,11 +21,38 @@ import { interpolateSinebow } from "d3-scale-chromatic"
 const geoUrl = "https://unpkg.com/world-atlas@2.0.2/countries-110m.json"
 
 const countriesWithItineraries = [
+  { id: "USA", name: "United States", destinationId: "united_states" },
+  { id: "CAN", name: "Canada", destinationId: "canada" },
+  { id: "GBR", name: "United Kingdom", destinationId: "united_kingdom" },
+  { id: "FRA", name: "France", destinationId: "france" },
+  { id: "DEU", name: "Germany", destinationId: "germany" },
+  { id: "JPN", name: "Japan", destinationId: "japan" },
+  { id: "AUS", name: "Australia", destinationId: "australia" },
+  { id: "BRA", name: "Brazil", destinationId: "brazil" },
+  { id: "IND", name: "India", destinationId: "india" },
+  { id: "CHN", name: "China", destinationId: "china" },
+  { id: "ZAF", name: "South Africa", destinationId: "south_africa" },
+  { id: "RUS", name: "Russia", destinationId: "russia" },
+  { id: "MEX", name: "Mexico", destinationId: "mexico" },
+  { id: "ARG", name: "Argentina", destinationId: "argentina" },
+  { id: "EGY", name: "Egypt", destinationId: "egypt" },
   { id: "GRC", name: "Greece", destinationId: "greece" },
   { id: "ITA", name: "Italy", destinationId: "italy" },
-  { id: "JPN", name: "Japan", destinationId: "japan" },
-  { id: "FRA", name: "France", destinationId: "france" },
+  { id: "ESP", name: "Spain", destinationId: "spain" },
+  { id: "KOR", name: "South Korea", destinationId: "south_korea" },
+  { id: "NLD", name: "Netherlands", destinationId: "netherlands" },
+  { id: "SWE", name: "Sweden", destinationId: "sweden" },
+  { id: "NOR", name: "Norway", destinationId: "norway" },
+  { id: "VNM", name: "Vietnam", destinationId: "vietnam" },
+  { id: "PHL", name: "Philippines", destinationId: "philippines" },
+  { id: "CHE", name: "Switzerland", destinationId: "switzerland" },
+  { id: "PRT", name: "Portugal", destinationId: "portugal" },
+  { id: "ARE", name: "UAE", destinationId: "uae" },
+  { id: "PER", name: "Peru", destinationId: "peru" },
+  { id: "KEN", name: "Kenya", destinationId: "kenya" },
+  { id: "THA", name: "Thailand", destinationId: "thailand" },
 ]
+
 
 const countryData = {
   USA: { value: 8, coordinates: [-98.5795, 39.8283] },
