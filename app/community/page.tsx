@@ -50,7 +50,7 @@ export default function CommunityPage() {
           flag,
           created_at,
           activities(count),
-          user:users_public!user_id (
+          user:users!user_id (
             full_name
           )
         `
