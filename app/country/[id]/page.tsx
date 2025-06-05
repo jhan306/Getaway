@@ -157,18 +157,7 @@ export default function CountryPage({ params }: { params: { id: string } }) {
         id,
         text,
         highlighted,
-        created_at,
-        user:auth.users!questions_user_id_fkey (
-          id,
-          email,
-          user_metadata
-        ),
-        replies (
-          id,
-          text,
-          created_at
-        )
-        
+        created_at
       `)
       .eq("country_slug", countrySlug)
       .order("created_at", { ascending: false });
