@@ -383,10 +383,31 @@ export default function ItineraryPlanner({
 
   const currentTrip = trips.find((t) => t.id === currentId) as Trip;
 
-  const updateTrip = (partial: Partial<Trip>) =>
+  const updateTrip = async (partial: Partial<Trip>) => {
+    if (!currentTrip) return;
+
+    // Update local state
     setTrips((prev) =>
       prev.map((t) => (t.id === currentId ? { ...t, ...partial } : t))
     );
+
+    // Update in Supabase
+    const { error } = await supabase
+      .from("trips")
+      .update({
+        ...partial,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", currentTrip.id);
+
+    if (error) {
+      toast({
+        title: "Error saving changes",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
 
   // alias shortcuts the rest of the code already expects
   const {
@@ -394,6 +415,7 @@ export default function ItineraryPlanner({
     scheduled: scheduledActivities = {},
     isPublic = false,
   } = currentTrip || {};
+
   const setAvailableActivities = (avail: Activity[]) =>
     updateTrip({ available: avail });
   const setScheduledActivities = (sched: ScheduledMap) =>
@@ -465,20 +487,49 @@ export default function ItineraryPlanner({
   };
 
   // ----- Add‐trip handler -------------------------------------
-  const addTrip = () => {
+  const addTrip = async () => {
     const name = prompt("Give your trip a name (e.g. Spain 2026)")?.trim();
     if (!name) return;
+
+    const user = await supabase.auth.getUser();
+    if (!user.data.user) return;
+
     const newTrip = makeTrip(name);
-    setTrips((prev) => [...prev, newTrip]);
-    setCurrentId(newTrip.id);
+
+    // Save to Supabase
+    const { error } = await supabase.from("trips").insert({
+      id: newTrip.id,
+      name: newTrip.name,
+      flag: newTrip.flag,
+      available: newTrip.available,
+      scheduled: newTrip.scheduled,
+      is_public: newTrip.isPublic,
+      user_id: user.data.user.id,
+      country_id: countryId,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+
+    if (!error) {
+      setTrips((prev) => [...prev, newTrip]);
+      setCurrentId(newTrip.id);
+    } else {
+      toast({
+        title: "Error creating trip",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
-  const saveNewActivity = () => {
+
+  // Save new activity to Supabase
+  const saveNewActivity = async () => {
     if (!newTitle.trim()) return;
 
     const newActivity: Activity = {
       id: crypto.randomUUID(),
       name: newTitle.trim(),
-      image: "/placeholder.svg?height=200&width=300", // or let users upload later
+      image: "/placeholder.svg?height=200&width=300",
       duration: newDuration,
       location: newLocation.trim() || "Unknown",
       description: newDescription.trim(),
@@ -487,6 +538,8 @@ export default function ItineraryPlanner({
       scenicRating: 1,
       culturalRating: 1,
     };
+
+    // Update local state
     setAvailableActivities([...availableActivities, newActivity]);
 
     // reset + close dialog
@@ -498,7 +551,10 @@ export default function ItineraryPlanner({
     setAddOpen(false);
   };
 
+  // Update country activities in Supabase
   useEffect(() => {
+    if (!currentTrip) return;
+
     setAvailableActivities([
       ...(activitiesByCountry[countryId as keyof typeof activitiesByCountry] ||
         []),
