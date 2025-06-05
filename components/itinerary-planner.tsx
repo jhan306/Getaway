@@ -392,6 +392,7 @@ export default function ItineraryPlanner({
   const {
     available: availableActivities = [],
     scheduled: scheduledActivities = {},
+    isPublic = false,
   } = currentTrip || {};
   const setAvailableActivities = (avail: Activity[]) =>
     updateTrip({ available: avail });
@@ -431,7 +432,7 @@ export default function ItineraryPlanner({
   // Toggle public/private for current trip
   const togglePublic = async () => {
     if (!currentTrip) return;
-    const newIsPublic = !currentTrip.isPublic;
+    const newIsPublic = !isPublic;
     // Update in Supabase
     const { error } = await supabase
       .from("trips")
@@ -705,25 +706,21 @@ export default function ItineraryPlanner({
           Reset Itinerary
         </Button>
         <div className="flex items-center gap-2">
-          <span
-            className={
-              currentTrip.isPublic ? "text-green-600" : "text-gray-500"
-            }
-          >
-            {currentTrip.isPublic ? "Public" : "Private"}
+          <span className={isPublic ? "text-green-600" : "text-gray-500"}>
+            {isPublic ? "Public" : "Private"}
           </span>
           <button
             onClick={togglePublic}
             className={`w-10 h-6 rounded-full border transition-colors duration-200 focus:outline-none ${
-              currentTrip.isPublic
+              isPublic
                 ? "bg-green-400 border-green-600"
                 : "bg-gray-300 border-gray-400"
             }`}
-            title={currentTrip.isPublic ? "Make Private" : "Make Public"}
+            title={isPublic ? "Make Private" : "Make Public"}
           >
             <span
               className={`block w-4 h-4 rounded-full bg-white shadow transform transition-transform duration-200 ${
-                currentTrip.isPublic ? "translate-x-4" : "translate-x-1"
+                isPublic ? "translate-x-4" : "translate-x-1"
               }`}
             />
           </button>
