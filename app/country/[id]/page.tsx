@@ -154,12 +154,12 @@ export default function CountryPage({ params }: { params: { id: string } }) {
           text,
           highlighted,
           created_at,
-          user:auth.users!inner(username, display_name),
+          profiles:profiles!inner(username, avatar_url),Add commentMore actions
           replies (
             id,
             text,
             created_at,
-            user:auth.users!inner(username, display_name)
+            profiles:profiles!inner(username, avatar_url)
           )
         `)
         .eq("country_slug", countrySlug)
