@@ -177,7 +177,10 @@ export default function CountryPage({ params }: { params: { id: string } }) {
       .eq("country_slug", countrySlug)
       .order("created_at", { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error("Supabase fetch error:", error);
+      throw error;
+    }
     return data;
   });
 
