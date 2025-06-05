@@ -4,7 +4,7 @@ import type React from "react"
 
 import { createContext, useContext, useEffect, useState } from "react"
 import type { User } from "@supabase/supabase-js"
-import { createClient } from "@/lib/supabase/client"
+import { supabase } from '@/lib/supabase/client';
 
 type AuthContextType = {
   user: User | null
