@@ -1,14 +1,16 @@
+// app/auth/resend-confirmation/page.tsx
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import React, { useState } from "react"
 import Link from "next/link"
 import { Globe, Mail, ArrowLeft, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { createClient } from "@/lib/supabase/client"
+
+// 1) Import the “Pages” helper instead of your old createClient()
+import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs"
+import type { SupabaseClient } from "@supabase/auth-helpers-nextjs"
 
 export default function ResendConfirmationPage() {
   const [email, setEmail] = useState("")
@@ -16,30 +18,36 @@ export default function ResendConfirmationPage() {
   const [sent, setSent] = useState(false)
   const [error, setError] = useState("")
 
+  // 2) Instantiate the Supabase client on the browser using the helper:
+  //    The generic type <any> is fine here if you haven't typed your schema.
+  const supabase: SupabaseClient<any> = createPagesBrowserClient()
+
   const handleResend = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError("")
 
     try {
-      const supabase = createClient()
-      const { error } = await supabase.auth.resend({
+      // 3) Call the "resend confirmation" RPC via the new client:
+      const { error: resendError } = await supabase.auth.resend({
         type: "signup",
-        email: email,
+        email,
       })
 
-      if (error) {
-        setError(error.message)
+      if (resendError) {
+        setError(resendError.message)
       } else {
         setSent(true)
       }
     } catch (err) {
+      console.error(err)
       setError("An unexpected error occurred")
     } finally {
       setLoading(false)
     }
   }
 
+  // 4) Once email is successfully sent, show a “check your inbox” screen:
   if (sent) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 px-4">
@@ -108,6 +116,7 @@ export default function ResendConfirmationPage() {
     )
   }
 
+  // 5) Otherwise render the “resend” form:
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
       <div className="max-w-md w-full space-y-8">
