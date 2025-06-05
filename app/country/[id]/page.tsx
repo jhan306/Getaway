@@ -157,7 +157,12 @@ export default function CountryPage({ params }: { params: { id: string } }) {
         id,
         text,
         highlighted,
-        created_at
+        created_at,
+        user:user_id (
+          id,
+          email,
+          user_metadata
+        )
       `)
       .eq("country_slug", countrySlug)
       .order("created_at", { ascending: false });
