@@ -237,10 +237,12 @@ export default function MyTripsPage() {
             <p className="text-gray-600 mb-4">
               Start planning your first adventure!
             </p>
-            <Button onClick={() => setShowPlanner(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Your First Trip
-            </Button>
+            {!showPlanner && (
+              <Button onClick={() => setShowPlanner(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Your First Trip
+              </Button>
+            )}
             {showPlanner && (
               <div className="mt-8">
                 <ItineraryPlanner />
