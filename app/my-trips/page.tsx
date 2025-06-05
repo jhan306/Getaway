@@ -230,24 +230,22 @@ export default function MyTripsPage() {
           ))}
         </div>
 
-        {trips.length === 0 && (
+        {trips.length === 0 && !showPlanner && (
           <div className="text-center py-12">
             <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium mb-2">No trips yet</h3>
             <p className="text-gray-600 mb-4">
               Start planning your first adventure!
             </p>
-            {!showPlanner && (
-              <Button onClick={() => setShowPlanner(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Your First Trip
-              </Button>
-            )}
-            {showPlanner && (
-              <div className="mt-8">
-                <ItineraryPlanner />
-              </div>
-            )}
+            <Button onClick={() => setShowPlanner(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Your First Trip
+            </Button>
+          </div>
+        )}
+        {showPlanner && (
+          <div className="mt-8">
+            <ItineraryPlanner />
           </div>
         )}
       </main>
