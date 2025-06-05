@@ -130,7 +130,7 @@ export default function WorldMap() {
                           }}
                           onMouseLeave={() => setTooltipContent("")}
                           onClick={() => {
-                            if (isItinerary && data?.destinationId) {
+                            if (country.destinationId) {
                               router.push(`/country/${data.destinationId}`)
                             } else {
                               setActiveCountries((prev) =>
