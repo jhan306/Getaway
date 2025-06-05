@@ -159,7 +159,7 @@ export default function CountryPage({ params }: { params: { id: string } }) {
           text,
           highlighted,
           created_at,
-          user:user_id (
+          user:auth.users!questions_user_id_fkey (
             id,
             email,
             user_metadata
@@ -168,7 +168,7 @@ export default function CountryPage({ params }: { params: { id: string } }) {
             id,
             text,
             created_at,
-            user:user_id (
+            user:auth.users!replies_user_id_fkey (
               id,
               email
             )
