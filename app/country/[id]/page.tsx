@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import useSWR from "swr"
 import { supabase } from "@/lib/supabase/client" 
+import { useState, useEffect } from "react"
 
 // Country data (static fallback for things like flag, cities, etc.)
 const countryData = {
@@ -91,6 +92,28 @@ const countryData = {
 export default function CountryPage({ params }: { params: { id: string } }) {
   const countrySlug = params.id
   const router = useRouter()
+  const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null);
+  useEffect(() => {
+    // Grab the session’s user once on mount
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setCurrentUser(user ? { id: user.id } : null)
+    })
+    
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setCurrentUser({ id: session.user.id });
+      } else {
+        setCurrentUser(null);
+      }
+    });
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  
   const countryId = params.id
   const country = countryData[countryId as keyof typeof countryData]
 
@@ -149,29 +172,58 @@ export default function CountryPage({ params }: { params: { id: string } }) {
 
   /* post a new question */
   const postQuestion = async () => {
-    if (!newQuestion.trim()) return
+    if (!newQuestion.trim() || !currentUser) return; // refuse if no user is signed in
+  
+    const { data, error } = await supabase
+      .from("questions")
+      .insert({
+        country_slug: countrySlug,
+        user_id: currentUser.id,      // ← include the logged‐in user’s ID
+        text: newQuestion.trim(),
+        highlighted: false,
+      });
+  
+    if (error) {
+      console.error("Error inserting question:", error);
+      toast({
+        title: "Could not post question",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      // Clear the input, then revalidate the SWR cache so the new question shows up
+      setNewQuestion("");
+      mutate();
+    }
+  };
 
-    await supabase.from("questions").insert({
-      country_slug: countrySlug,
-      text: newQuestion.trim(),
-      highlighted: false,
-    })
-    setNewQuestion("")
-    mutate() // reload data
-  }
-
-  /* post a reply */
+  /* post a reply to a question */
   const postReply = async (qId: string) => {
-    const draft = replyDrafts[qId]?.trim()
-    if (!draft) return
+    const draft = replyDrafts[qId]?.trim();
+    if (!draft || !currentUser) return;
+  
+    const { data, error } = await supabase
+      .from("replies")
+      .insert({
+        question_id: qId,
+        user_id: currentUser.id,    // ← include the “user_id” here, too
+        text: draft,
+      });
+  
+    if (error) {
+      console.error("Error inserting reply:", error);
+      toast({
+        title: "Could not post reply",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      // Clear that reply draft and revalidate
+      setReplyDrafts((d) => ({ ...d, [qId]: "" }));
+      mutate();
+    }
+  };
 
-    await supabase.from("replies").insert({
-      question_id: qId,
-      text: draft,
-    })
-    setReplyDrafts((d) => ({ ...d, [qId]: "" }))
-    mutate()
-  }
 
   // ⚠️ Here’s the guard: don’t call .filter on `questions` until it’s actually an array.
   const filteredQuestions = Array.isArray(questions)
