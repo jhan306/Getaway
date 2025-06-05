@@ -449,7 +449,7 @@ export default function CountryPage({ params }: { params: { id: string } }) {
                           <div className="flex justify-between">
                             <div>
                               <span className="font-medium mr-2">
-                                {q.user?.user_metadata?.username ?? "anon"}
+                                {q.user?.full_name ?? "anon"}
                               </span>
                               <em className="text-xs text-gray-600">
                                 ({q.user?.email ?? "unknown"})
@@ -479,7 +479,7 @@ export default function CountryPage({ params }: { params: { id: string } }) {
                                 className="bg-white rounded px-3 py-2 text-sm"
                               >
                                 <strong className="mr-2">
-                                  {r.user?.user_metadata?.username ?? "anon"}
+                                  {r.user?.full_name ?? "anon"}
                                 </strong>
                                 <span className="text-xs text-gray-600">
                                   ({r.user?.email ?? "unknown"})
