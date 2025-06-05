@@ -494,6 +494,24 @@ export default function ItineraryPlanner({
     const user = await supabase.auth.getUser();
     if (!user.data.user) return;
 
+    // First, ensure user exists in users_public table
+    const { error: userError } = await supabase.from("users_public").upsert({
+      id: user.data.user.id,
+      email: user.data.user.email,
+      full_name: user.data.user.user_metadata?.full_name || null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+
+    if (userError) {
+      toast({
+        title: "Error creating trip",
+        description: "Could not verify user account. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const newTrip = makeTrip(name);
 
     // Save to Supabase
