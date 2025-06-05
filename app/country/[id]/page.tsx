@@ -10,10 +10,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
-import useSWR from 'swr';
-import { supabase } from '@/lib/supabase/client';
+import useSWR from "swr"
+import { supabase } from "@/lib/supabase/client" // <-- make sure this path is correct
 
-// Country data
+// Country data (static fallback for things like flag, cities, etc.)
 const countryData = {
   greece: {
     name: "Greece",
@@ -24,42 +24,42 @@ const countryData = {
       {
         id: "parthenon",
         name: "Parthenon",
-        image: "/images/parthenon.jpg", // Update this path to your actual image
+        image: "/images/parthenon.jpg",
         city: "Athens",
         type: "Landmarks",
       },
       {
         id: "corfu",
         name: "Corfu",
-        image: "/images/corfu.jpg", // Update this path to your actual image
+        image: "/images/corfu.jpg",
         city: "Corfu",
         type: "Landmarks",
       },
       {
         id: "meteora",
         name: "Meteora",
-        image: "/images/meteora.jpg", // Update this path to your actual image
+        image: "/images/meteora.jpg",
         city: "Meteora",
         type: "Landmarks",
       },
       {
         id: "santorini",
         name: "Santorini",
-        image: "/images/santorini.jpg", // Update this path to your actual image
+        image: "/images/santorini.jpg",
         city: "Santorini",
         type: "Landmarks",
       },
       {
         id: "acropolis-museum",
         name: "Acropolis Museum",
-        image: "/images/acropolis-museum.jpg", // Update this path to your actual image
+        image: "/images/acropolis-museum.jpg",
         city: "Athens",
         type: "Landmarks",
       },
       {
         id: "mykonos",
         name: "Mykonos",
-        image: "/images/mykonos.jpg", // Update this path to your actual image
+        image: "/images/mykonos.jpg",
         city: "Mykonos",
         type: "Landmarks",
       },
@@ -71,7 +71,6 @@ const countryData = {
     cities: ["Rome", "Venice", "Florence"],
     sortOptions: ["Restaurants", "Accommodations", "Landmarks"],
     destinations: [],
-    questions: [],
   },
   japan: {
     name: "Japan",
@@ -79,7 +78,6 @@ const countryData = {
     cities: ["Tokyo", "Kyoto", "Osaka"],
     sortOptions: ["Restaurants", "Accommodations", "Landmarks"],
     destinations: [],
-    questions: [],
   },
   france: {
     name: "France",
@@ -87,12 +85,11 @@ const countryData = {
     cities: ["Paris", "Nice", "Lyon"],
     sortOptions: ["Restaurants", "Accommodations", "Landmarks"],
     destinations: [],
-    questions: [],
   },
 }
 
 export default function CountryPage({ params }: { params: { id: string } }) {
-  const countrySlug = params.id;
+  const countrySlug = params.id
   const router = useRouter()
   const countryId = params.id
   const country = countryData[countryId as keyof typeof countryData]
@@ -101,90 +98,95 @@ export default function CountryPage({ params }: { params: { id: string } }) {
   const [selectedSortOption, setSelectedSortOption] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [newQuestion, setNewQuestion] = useState("")
+  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({})
   const { toast } = useToast()
 
   if (!country) {
     return <div>Country not found</div>
   }
-  
-  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
 
-  // Filter destinations based on selected city, sort option, and search query
-  const filteredDestinations = country.destinations.filter((destination) => {
-    if (selectedCity && destination.city !== selectedCity) {
-      return false
-    }
-    if (selectedSortOption && destination.type !== selectedSortOption) {
-      return false
-    }
+  // Only use .filter on destinations array that is guaranteed to exist.
+  const filteredDestinations = country.destinations.filter((dest) => {
+    if (selectedCity && dest.city !== selectedCity) return false
+    if (selectedSortOption && dest.type !== selectedSortOption) return false
     if (
       searchQuery &&
-      !destination.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      !destination.city.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      !destination.type.toLowerCase().includes(searchQuery.toLowerCase())
+      !dest.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      !dest.city.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      !dest.type.toLowerCase().includes(searchQuery.toLowerCase())
     ) {
       return false
     }
     return true
   })
 
+  // fetch questions + replies from Supabase via SWR
   const { data: questions, error, isLoading, mutate } = useSWR(
-    ['questions', countrySlug],                      //  ← cache-key
+    ["questions", countrySlug], // ← unique cache key
     async () => {
       const { data, error } = await supabase
-        .from('questions')
+        .from("questions")
         .select(`
-          id, text, highlighted, created_at,
+          id,
+          text,
+          highlighted,
+          created_at,
           profiles:profiles!inner(username, avatar_url),
           replies (
-            id, text, created_at,
+            id,
+            text,
+            created_at,
             profiles:profiles!inner(username, avatar_url)
           )
         `)
-        .eq('country_slug', countrySlug)
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      return data;
-    }
-  );
+        .eq("country_slug", countrySlug)
+        .order("created_at", { ascending: false })
 
+      if (error) throw error
+      return data
+    }
+  )
 
   /* post a new question */
   const postQuestion = async () => {
-    if (!newQuestion.trim()) return;
-  
-    await supabase.from('questions').insert({
+    if (!newQuestion.trim()) return
+
+    await supabase.from("questions").insert({
       country_slug: countrySlug,
       text: newQuestion.trim(),
       highlighted: false,
-    });
-  
-    setNewQuestion('');
-    mutate();                      // reload list
-  };
+    })
+    setNewQuestion("")
+    mutate() // reload data
+  }
 
   /* post a reply */
   const postReply = async (qId: string) => {
-    const draft = replyDrafts[qId]?.trim();
-    if (!draft) return;
-  
-    await supabase.from('replies').insert({
+    const draft = replyDrafts[qId]?.trim()
+    if (!draft) return
+
+    await supabase.from("replies").insert({
       question_id: qId,
       text: draft,
-    });
-  
-    setReplyDrafts((d) => ({ ...d, [qId]: '' }));
-    mutate();
-  };
+    })
+    setReplyDrafts((d) => ({ ...d, [qId]: "" }))
+    mutate()
+  }
 
-  const filteredQuestions = questions.filter((q) =>
-    q.text.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // ⚠️ Here’s the guard: don’t call .filter on `questions` until it’s actually an array.
+  const filteredQuestions = Array.isArray(questions)
+    ? questions.filter((q) =>
+        q.text.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : []
 
-  if (error) return <div className="p-4 text-red-500">Error loading feed</div>;
-  if (isLoading || !questions)
-    return <div className="p-4 text-gray-500">Loading…</div>;
-  
+  if (error) {
+    return <div className="p-4 text-red-500">Error loading feed</div>
+  }
+  if (isLoading || !questions) {
+    return <div className="p-4 text-gray-500">Loading…</div>
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 text-black">
       {/* Navigation */}
@@ -230,10 +232,12 @@ export default function CountryPage({ params }: { params: { id: string } }) {
                     {country.cities.map((city) => (
                       <li key={city}>
                         <button
-                          className={`text-left w-full hover:font-medium ${selectedCity === city ? "font-medium" : ""}`}
-                          onClick={() => {
+                          className={`text-left w-full hover:font-medium ${
+                            selectedCity === city ? "font-medium" : ""
+                          }`}
+                          onClick={() =>
                             setSelectedCity(selectedCity === city ? null : city)
-                          }}
+                          }
                         >
                           {city}
                         </button>
@@ -251,9 +255,11 @@ export default function CountryPage({ params }: { params: { id: string } }) {
                           className={`text-left w-full hover:font-medium ${
                             selectedSortOption === option ? "font-medium" : ""
                           }`}
-                          onClick={() => {
-                            setSelectedSortOption(selectedSortOption === option ? null : option)
-                          }}
+                          onClick={() =>
+                            setSelectedSortOption(
+                              selectedSortOption === option ? null : option
+                            )
+                          }
                         >
                           {option}
                         </button>
@@ -274,14 +280,20 @@ export default function CountryPage({ params }: { params: { id: string } }) {
                   >
                     browse
                   </TabsTrigger>
-                  <TabsTrigger value="ask" className="data-[state=active]:bg-amber-200 data-[state=active]:text-black">
+                  <TabsTrigger
+                    value="ask"
+                    className="data-[state=active]:bg-amber-200 data-[state=active]:text-black"
+                  >
                     ask
                   </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="browse" className="mt-0">
                   <div className="relative mb-6">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                    <Search
+                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                      size={18}
+                    />
                     <Input
                       type="search"
                       placeholder="SEARCH"
@@ -327,7 +339,10 @@ export default function CountryPage({ params }: { params: { id: string } }) {
 
                 <TabsContent value="ask" className="mt-0">
                   <div className="relative mb-6">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                    <Search
+                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                      size={18}
+                    />
                     <Input
                       type="search"
                       placeholder="SEARCH"
@@ -356,51 +371,65 @@ export default function CountryPage({ params }: { params: { id: string } }) {
                     </div>
 
                     <div className="max-h-[400px] overflow-y-auto pr-2">
-                      {questions.map((q: any) => (
-                        <div key={q.id} className="rounded-lg p-4 mb-3 bg-gray-200">
+                      {filteredQuestions.map((q: any) => (
+                        <div
+                          key={q.id}
+                          className="rounded-lg p-4 mb-3 bg-gray-200"
+                        >
                           {/* question header */}
                           <div className="flex justify-between">
                             <div>
-                              <span className="font-medium mr-2">{q.profiles?.username ?? 'anon'}</span>
+                              <span className="font-medium mr-2">
+                                {q.profiles?.username ?? "anon"}
+                              </span>
                               {q.text}
                             </div>
-                    
+
                             <button
                               className="rounded-full p-1 bg-gray-300"
                               onClick={async () => {
-                                await supabase                        // toggle highlight on the server
-                                  .from('questions')
+                                await supabase
+                                  .from("questions")
                                   .update({ highlighted: !q.highlighted })
-                                  .eq('id', q.id);
-                                mutate();
+                                  .eq("id", q.id)
+                                mutate()
                               }}
                             >
-                              {q.highlighted ? '★' : '☆'}
+                              {q.highlighted ? "★" : "☆"}
                             </button>
-                          </div>         
+                          </div>
+
                           {/* replies */}
                           <div className="mt-3 space-y-2">
                             {q.replies.map((r: any) => (
-                              <div key={r.id} className="bg-white rounded px-3 py-2 text-sm">
-                                <strong className="mr-2">{r.profiles?.username ?? 'anon'}</strong>
+                              <div
+                                key={r.id}
+                                className="bg-white rounded px-3 py-2 text-sm"
+                              >
+                                <strong className="mr-2">
+                                  {r.profiles?.username ?? "anon"}
+                                </strong>
                                 {r.text}
                               </div>
                             ))}
-                    
+
                             {/* composer */}
                             <textarea
                               rows={2}
                               className="w-full bg-white border rounded p-2 text-sm"
                               placeholder="Write a reply…"
-                              value={replyDrafts[q.id] ?? ''}
+                              value={replyDrafts[q.id] ?? ""}
                               onChange={(e) =>
-                                setReplyDrafts((d) => ({ ...d, [q.id]: e.target.value }))
+                                setReplyDrafts((d) => ({
+                                  ...d,
+                                  [q.id]: e.target.value,
+                                }))
                               }
                             />
                             <Button
                               size="sm"
                               className="mt-1 bg-amber-200 text-black"
-                              disabled={!(replyDrafts[q.id] || '').trim()}
+                              disabled={!(replyDrafts[q.id] || "").trim()}
                               onClick={() => postReply(q.id)}
                             >
                               Post reply
@@ -422,7 +451,9 @@ export default function CountryPage({ params }: { params: { id: string } }) {
         <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row px-4 md:px-6">
           <div className="flex items-center gap-2">
             <Globe className="h-5 w-5" />
-            <p className="text-sm text-muted-foreground">© 2024 Getaway. All rights reserved.</p>
+            <p className="text-sm text-muted-foreground">
+              © 2024 Getaway. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>
