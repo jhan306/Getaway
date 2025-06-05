@@ -451,9 +451,6 @@ export default function CountryPage({ params }: { params: { id: string } }) {
                               <span className="font-medium mr-2">
                                 {q.user?.full_name ?? "anon"}
                               </span>
-                              <em className="text-xs text-gray-600">
-                                ({q.user?.email ?? "unknown"})
-                              </em>
                               <div className="mt-1">{q.text}</div>
                             </div>
 
@@ -481,9 +478,6 @@ export default function CountryPage({ params }: { params: { id: string } }) {
                                 <strong className="mr-2">
                                   {r.user?.full_name ?? "anon"}
                                 </strong>
-                                <span className="text-xs text-gray-600">
-                                  ({r.user?.email ?? "unknown"})
-                                </span>
                                 <div className="mt-1">{r.text}</div>
                               </div>
                             ))}
