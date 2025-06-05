@@ -377,14 +377,8 @@ export default function CountryPage({ params }: { params: { id: string } }) {
 
             {/* Main Content */}
             <div>
-              <Tabs defaultValue="browse" className="w-full">
-                <TabsList className="grid grid-cols-2 mb-6">
-                  <TabsTrigger
-                    value="browse"
-                    className="data-[state=active]:bg-amber-200 data-[state=active]:text-black"
-                  >
-                    browse
-                  </TabsTrigger>
+              <Tabs defaultValue="ask" className="w-full">
+                <TabsList className="mb-6">
                   <TabsTrigger
                     value="ask"
                     className="data-[state=active]:bg-amber-200 data-[state=active]:text-black"
@@ -392,55 +386,6 @@ export default function CountryPage({ params }: { params: { id: string } }) {
                     ask
                   </TabsTrigger>
                 </TabsList>
-
-                <TabsContent value="browse" className="mt-0">
-                  <div className="relative mb-6">
-                    <Search
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                      size={18}
-                    />
-                    <Input
-                      type="search"
-                      placeholder="SEARCH"
-                      className="pl-10 bg-gray-200 border-none"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    {filteredDestinations.map((destination) => (
-                      <div key={destination.id} className="relative group">
-                        <div className="relative h-48 w-full overflow-hidden rounded-md">
-                          <Image
-                            src={destination.image || "/placeholder.svg"}
-                            alt={destination.name}
-                            fill
-                            className="object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                        </div>
-                        <div className="absolute bottom-0 left-0 right-0 bg-black/50 text-black p-2 text-center">
-                          {destination.name}
-                        </div>
-                        <button className="absolute top-2 right-2 bg-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
-                          </svg>
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </TabsContent>
 
                 <TabsContent value="ask" className="mt-0">
                   <div className="relative mb-6">
