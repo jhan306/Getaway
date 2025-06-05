@@ -433,13 +433,21 @@ export default function ItineraryPlanner({
   const togglePublic = async () => {
     if (!currentTrip) return;
     const newIsPublic = !isPublic;
+
     // Update in Supabase
     const { error } = await supabase
       .from("trips")
-      .update({ is_public: newIsPublic })
+      .update({
+        is_public: newIsPublic,
+        updated_at: new Date().toISOString(), // Add this to trigger a refresh
+      })
       .eq("id", currentTrip.id);
+
     if (!error) {
+      // Update local state
       updateTrip({ isPublic: newIsPublic });
+
+      // Show success message
       toast({
         title: newIsPublic ? "Trip is now public" : "Trip is now private",
         description: newIsPublic
@@ -447,6 +455,7 @@ export default function ItineraryPlanner({
           : "This itinerary is now private.",
       });
     } else {
+      // Show error message
       toast({
         title: "Error updating trip visibility",
         description: error.message,

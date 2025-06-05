@@ -149,19 +149,6 @@ export default function CommunityPage() {
             </Card>
           ))}
         </div>
-
-        {trips.length === 0 && (
-          <div className="text-center py-12">
-            <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">No public trips yet</h3>
-            <p className="text-gray-600 mb-4">
-              Be the first to share your travel plans with the community!
-            </p>
-            <Button asChild>
-              <Link href="/itinerary">Create Your First Trip</Link>
-            </Button>
-          </div>
-        )}
       </main>
 
       <footer className="border-t py-6 md:py-0">
