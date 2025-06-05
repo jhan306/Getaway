@@ -1,14 +1,29 @@
+// app/my-trips/page.tsx
 "use client"
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Plus, MapPin, Calendar, Edit, Trash2, Eye, EyeOff } from "lucide-react"
+import {
+  Plus,
+  MapPin,
+  Calendar,
+  Edit,
+  Trash2,
+  Eye,
+  EyeOff,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Header from "@/components/header"
-import { createClient } from "@/lib/supabase/client"
 import { useAuth } from "@/contexts/auth-context"
 import { useToast } from "@/hooks/use-toast"
+
+// 1) Remove your old createClient import:
+// import { createClient } from "@/lib/supabase/client"
+
+// 2) Add the official Next.js “Pages” helper for Supabase:
+import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs"
+import type { SupabaseClient } from "@supabase/auth-helpers-nextjs"
 
 type Trip = {
   id: string
@@ -30,9 +45,11 @@ export default function MyTripsPage() {
   useEffect(() => {
     if (!user) return
 
-    const fetchMyTrips = async () => {
-      const supabase = createClient()
+    async function fetchMyTrips() {
+      // 3) Instantiate Supabase client using the new helper:
+      const supabase: SupabaseClient<any> = createPagesBrowserClient()
 
+      // 4) Exactly the same “select” call you had before:
       const { data, error } = await supabase
         .from("trips")
         .select(`
@@ -59,16 +76,27 @@ export default function MyTripsPage() {
   }, [user])
 
   const togglePublic = async (tripId: string, currentStatus: boolean) => {
-    const supabase = createClient()
+    // 5) Create Supabase client via the new helper:
+    const supabase: SupabaseClient<any> = createPagesBrowserClient()
 
-    const { error } = await supabase.from("trips").update({ is_public: !currentStatus }).eq("id", tripId)
+    const { error } = await supabase
+      .from("trips")
+      .update({ is_public: !currentStatus })
+      .eq("id", tripId)
 
     if (!error) {
-      setTrips(trips.map((trip) => (trip.id === tripId ? { ...trip, is_public: !currentStatus } : trip)))
+      // Update local state to reflect new is_public value:
+      setTrips((prev) =>
+        prev.map((trip) =>
+          trip.id === tripId ? { ...trip, is_public: !currentStatus } : trip
+        )
+      )
 
       toast({
         title: !currentStatus ? "Trip made public" : "Trip made private",
-        description: !currentStatus ? "Your trip is now visible to the community" : "Your trip is now private",
+        description: !currentStatus
+          ? "Your trip is now visible to the community"
+          : "Your trip is now private",
       })
     }
   }
@@ -76,12 +104,13 @@ export default function MyTripsPage() {
   const deleteTrip = async (tripId: string) => {
     if (!confirm("Are you sure you want to delete this trip?")) return
 
-    const supabase = createClient()
+    // 6) Again, call the new helper here:
+    const supabase: SupabaseClient<any> = createPagesBrowserClient()
 
     const { error } = await supabase.from("trips").delete().eq("id", tripId)
 
     if (!error) {
-      setTrips(trips.filter((trip) => trip.id !== tripId))
+      setTrips((prev) => prev.filter((trip) => trip.id !== tripId))
       toast({
         title: "Trip deleted",
         description: "Your trip has been permanently deleted",
@@ -153,14 +182,27 @@ export default function MyTripsPage() {
                   </div>
 
                   <div className="flex gap-2">
-                    <Button asChild size="sm" variant="outline" className="flex-1">
+                    <Button
+                      asChild
+                      size="sm"
+                      variant="outline"
+                      className="flex-1"
+                    >
                       <Link href={`/itinerary?trip=${trip.id}`}>
                         <Edit className="h-4 w-4 mr-1" />
                         Edit
                       </Link>
                     </Button>
-                    <Button size="sm" variant="outline" onClick={() => togglePublic(trip.id, trip.is_public)}>
-                      {trip.is_public ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => togglePublic(trip.id, trip.is_public)}
+                    >
+                      {trip.is_public ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
                     </Button>
                     <Button
                       size="sm"
