@@ -153,7 +153,7 @@ export default function CountryPage({ params }: { params: { id: string } }) {
   } = useSWR(["questions", countrySlug], async () => {
     const { data, error } = await supabase
       .from("questions")
-      select(`
+      .select(`
         id,
         text,
         highlighted,
