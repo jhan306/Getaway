@@ -144,7 +144,7 @@ export default function CountryPage({ params }: { params: { id: string } }) {
 
   // fetch questions + replies from Supabase via SWR
   const { data: questions, error, isLoading, mutate } = useSWR(
-    ["questions", countrySlug], // ← unique cache key
+    ["questions", countrySlug],
     async () => {
       const { data, error } = await supabase
         .from("questions")
@@ -153,21 +153,27 @@ export default function CountryPage({ params }: { params: { id: string } }) {
           text,
           highlighted,
           created_at,
-          profiles:profiles!inner(username, avatar_url),
-          replies (
+          user:auth.users!inner (
+            id,
+            email,
+            user_metadata
+          ),
+          profile:profiles!profiles_user_id_fkey (username, avatar_url),
+          replies:replies (
             id,
             text,
             created_at,
-            profiles:profiles!inner(username, avatar_url)
+            user:auth.users!inner (id, email),
+            profile:profiles!profiles_user_id_fkey (username, avatar_url)
           )
         `)
         .eq("country_slug", countrySlug)
-        .order("created_at", { ascending: false })
-
-      if (error) throw error
-      return data
+        .order("created_at", { ascending: false });
+  
+      if (error) throw error;
+      return data;
     }
-  )
+  );
 
   /* post a new question */
   const postQuestion = async () => {
@@ -181,7 +187,7 @@ export default function CountryPage({ params }: { params: { id: string } }) {
         text: newQuestion.trim(),
         highlighted: false,
       });
-  
+    
     if (error) {
       console.error("Error inserting question:", error);
       toast({
@@ -423,71 +429,69 @@ export default function CountryPage({ params }: { params: { id: string } }) {
 
                     <div className="max-h-[400px] overflow-y-auto pr-2">
                       {filteredQuestions.map((q: any) => (
-                        <div
-                          key={q.id}
-                          className="rounded-lg p-4 mb-3 bg-gray-200"
-                        >
-                          {/* question header */}
-                          <div className="flex justify-between">
-                            <div>
-                              <span className="font-medium mr-2">
-                                {q.profiles?.username ?? "anon"}
-                              </span>
-                              {q.text}
-                            </div>
-
-                            <button
-                              className="rounded-full p-1 bg-gray-300"
-                              onClick={async () => {
-                                await supabase
-                                  .from("questions")
-                                  .update({ highlighted: !q.highlighted })
-                                  .eq("id", q.id)
-                                mutate()
-                              }}
-                            >
-                              {q.highlighted ? "★" : "☆"}
-                            </button>
-                          </div>
-
-                          {/* replies */}
-                          <div className="mt-3 space-y-2">
-                            {q.replies.map((r: any) => (
-                              <div
-                                key={r.id}
-                                className="bg-white rounded px-3 py-2 text-sm"
-                              >
-                                <strong className="mr-2">
-                                  {r.profiles?.username ?? "anon"}
-                                </strong>
-                                {r.text}
-                              </div>
-                            ))}
-
-                            {/* composer */}
-                            <textarea
-                              rows={2}
-                              className="w-full bg-white border rounded p-2 text-sm"
-                              placeholder="Write a reply…"
-                              value={replyDrafts[q.id] ?? ""}
-                              onChange={(e) =>
-                                setReplyDrafts((d) => ({
-                                  ...d,
-                                  [q.id]: e.target.value,
-                                }))
-                              }
-                            />
-                            <Button
-                              size="sm"
-                              className="mt-1 bg-amber-200 text-black"
-                              disabled={!(replyDrafts[q.id] || "").trim()}
-                              onClick={() => postReply(q.id)}
-                            >
-                              Post reply
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
+                        <div key={q.id} className="rounded-lg p-4 mb-3 bg-gray-200">
+                           {/* question header */}
+                           <div className="flex justify-between">
+                             <div>
+                               {/* now using q.profile (from profiles table) and q.user (from auth.users) */}
+                               <span className="font-medium mr-2">
+                                 {q.profile?.username ?? "anon"}
+                               </span>
+                               <em className="text-xs text-gray-600">
+                                 ({q.user?.email ?? "unknown"})
+                               </em>
+                               <div className="mt-1">{q.text}</div>
+                             </div>
+                      
+                             <button
+                               className="rounded-full p-1 bg-gray-300"
+                               onClick={async () => {
+                                 await supabase
+                                   .from("questions")
+                                   .update({ highlighted: !q.highlighted })
+                                   .eq("id", q.id);
+                                 mutate();
+                               }}
+                             >
+                               {q.highlighted ? "★" : "☆"}
+                             </button>
+                           </div>
+                      
+                           {/* replies */}
+                           <div className="mt-3 space-y-2">
+                             {q.replies.map((r: any) => (
+                               <div key={r.id} className="bg-white rounded px-3 py-2 text-sm">
+                                 <strong className="mr-2">
+                                   {r.profile?.username ?? "anon"}
+                                 </strong>
+                                 <span className="text-xs text-gray-600">
+                                   ({r.user?.email ?? "unknown"})
+                                 </span>
+                                 <div className="mt-1">{r.text}</div>
+                               </div>
+                             ))}
+                      
+                             {/* composer (unchanged) */}
+                             <textarea
+                               rows={2}
+                               className="w-full bg-white border rounded p-2 text-sm"
+                               placeholder="Write a reply…"
+                               value={replyDrafts[q.id] ?? ""}
+                               onChange={(e) =>
+                                 setReplyDrafts((d) => ({ ...d, [q.id]: e.target.value }))
+                               }
+                             />
+                             <Button
+                               size="sm"
+                               className="mt-1 bg-amber-200 text-black hover:bg-amber-300"
+                               disabled={!(replyDrafts[q.id] || "").trim()}
+                               onClick={() => postReply(q.id)}
+                             >
+                               Post reply
+                             </Button>
+                           </div>
+                         </div>
+                       ))}
                     </div>
                   </div>
                 </TabsContent>
