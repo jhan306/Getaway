@@ -148,17 +148,18 @@ export default function CountryPage({ params }: { params: { id: string } }) {
     async () => {
       const { data, error } = await supabase
         .from("questions")
+
         .select(`
           id,
           text,
           highlighted,
           created_at,
-          user:users!inner(username, display_name),
+          user:auth.users!inner(username, display_name),
           replies (
             id,
             text,
             created_at,
-            user:users!inner(username, display_name)
+            user:auth.users!inner(username, display_name)
           )
         `)
         .eq("country_slug", countrySlug)
