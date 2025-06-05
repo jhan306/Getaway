@@ -409,6 +409,8 @@ export default function ItineraryPlanner({
         setTrips(
           data.map((t: any) => ({
             ...t,
+            available: t.available || [],
+            scheduled: t.scheduled || {},
             isPublic: t.is_public,
           }))
         );
