@@ -1,10 +1,10 @@
+// contexts/auth-context.tsx
 "use client"
 
 import type React from "react"
-
 import { createContext, useContext, useEffect, useState } from "react"
 import type { User } from "@supabase/supabase-js"
-import { supabase } from '@/lib/supabase/client';
+import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs"
 
 type AuthContextType = {
   user: User | null
@@ -12,7 +12,7 @@ type AuthContextType = {
   signUp: (
     email: string,
     password: string,
-    fullName: string,
+    fullName: string
   ) => Promise<{ error?: string; needsConfirmation?: boolean }>
   signIn: (email: string, password: string) => Promise<{ error?: string }>
   signOut: () => Promise<void>
@@ -24,10 +24,12 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const supabase = createClient()
+
+  // Create a Supabase client that lives entirely on the browser side:
+  const supabase = createPagesBrowserClient()
 
   useEffect(() => {
-    // Get initial session
+    // 1) Fetch the initial session (if any), so we know if a user is already logged in:
     const getSession = async () => {
       const {
         data: { session },
@@ -38,31 +40,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     getSession()
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
+    // 2) Listen for any auth state changes (sign-in, sign-out, token refresh, etc):
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setUser(session?.user ?? null)
+        setLoading(false)
 
-      // Create user profile if signing up or confirming email
-      if ((event === "SIGNED_UP" || event === "TOKEN_REFRESHED") && session?.user) {
-        // Only create profile if user is confirmed
-        if (session.user.email_confirmed_at) {
-          await supabase.from("users").upsert({
-            id: session.user.id,
-            email: session.user.email!,
-            full_name: session.user.user_metadata?.full_name || null,
-            avatar_url: session.user.user_metadata?.avatar_url || null,
-          })
+        // If a new user just signed up or just confirmed their email:
+        if (
+          (event === "SIGNED_UP" || event === "TOKEN_REFRESHED") &&
+          session?.user
+        ) {
+          // Only create/update profile once the email is confirmed
+          if (session.user.email_confirmed_at) {
+            await supabase
+              .from("users")
+              .upsert({
+                id: session.user.id,
+                email: session.user.email!,
+                full_name: session.user.user_metadata?.full_name || null,
+                avatar_url: session.user.user_metadata?.avatar_url || null,
+              })
+              .select()
+          }
         }
       }
-    })
+    )
 
-    return () => subscription.unsubscribe()
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [supabase])
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (
+    email: string,
+    password: string,
+    fullName: string
+  ) => {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -71,6 +85,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           data: {
             full_name: fullName,
           },
+          // When they click the confirmation link, Supabase will redirect
+          // back to your Auth Callback route. Adjust this as needed:
           emailRedirectTo: `${window.location.origin}/auth/callback?type=signup`,
         },
       })
@@ -79,13 +95,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: error.message }
       }
 
-      // If user needs to confirm email
+      // If the user needs to confirm their email (i.e. no session yet):
       if (data.user && !data.session) {
         return { needsConfirmation: true }
       }
-
       return {}
-    } catch (error) {
+    } catch (err) {
       return { error: "An unexpected error occurred" }
     }
   }
@@ -96,13 +111,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email,
         password,
       })
-
       if (error) {
         return { error: error.message }
       }
-
       return {}
-    } catch (error) {
+    } catch (err) {
       return { error: "An unexpected error occurred" }
     }
   }
@@ -115,24 +128,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { error } = await supabase.auth.resend({
         type: "signup",
-        email: email,
+        email,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback?type=signup`,
         },
       })
-
       if (error) {
         return { error: error.message }
       }
-
       return {}
-    } catch (error) {
+    } catch (err) {
       return { error: "An unexpected error occurred" }
     }
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, signUp, signIn, signOut, resendConfirmation }}>
+    <AuthContext.Provider
+      value={{ user, loading, signUp, signIn, signOut, resendConfirmation }}
+    >
       {children}
     </AuthContext.Provider>
   )
