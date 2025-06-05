@@ -154,7 +154,7 @@ export default function CountryPage({ params }: { params: { id: string } }) {
           text,
           highlighted,
           created_at,
-          profiles:profiles!inner(username, avatar_url),Add commentMore actions
+          profiles:profiles!inner(username, avatar_url),
           replies (
             id,
             text,
