@@ -153,7 +153,8 @@ export default function CountryPage({ params }: { params: { id: string } }) {
   } = useSWR(["questions", countrySlug], async () => {
     const { data, error } = await supabase
       .from("questions")
-      .select(`
+      .select(
+        `
         id,
         text,
         highlighted,
@@ -162,8 +163,19 @@ export default function CountryPage({ params }: { params: { id: string } }) {
           id,
           email,
           full_name
+        ),
+        replies (
+          id,
+          text,
+          created_at,
+          user:users_public!user_id (
+            id,
+            email,
+            full_name
+          )
         )
-      `)
+      `
+      )
       .eq("country_slug", countrySlug)
       .order("created_at", { ascending: false });
 
@@ -461,7 +473,7 @@ export default function CountryPage({ params }: { params: { id: string } }) {
 
                           {/* replies */}
                           <div className="mt-3 space-y-2">
-                            {q.replies.map((r: any) => (
+                            {q.replies?.map((r: any) => (
                               <div
                                 key={r.id}
                                 className="bg-white rounded px-3 py-2 text-sm"
