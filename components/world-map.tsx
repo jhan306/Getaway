@@ -130,7 +130,7 @@ export default function WorldMap() {
                           }}
                           onMouseLeave={() => setTooltipContent("")}
                           onClick={() => {
-                            if (country.destinationId) {
+                            if (data?.destinationId) {
                               router.push(`/country/${data.destinationId}`)
                             } else {
                               setActiveCountries((prev) =>
@@ -138,6 +138,7 @@ export default function WorldMap() {
                               )
                             }
                           }}
+                          
                           style={{
                             default: {
                               fill: getFillColor(data?.value),
