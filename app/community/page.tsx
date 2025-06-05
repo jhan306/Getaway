@@ -1,3 +1,4 @@
+// app/community/page.tsx
 "use client"
 
 import { useState, useEffect } from "react"
@@ -6,7 +7,13 @@ import { MapPin, Users, Calendar, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Header from "@/components/header"
-import { createClient } from "@/lib/supabase/client"
+
+// 1) Remove your old createClient import.
+// import { createClient } from "@/lib/supabase/client"
+
+// 2) Import the official Next.js “Pages” helper instead:
+import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs"
+import type { SupabaseClient } from "@supabase/auth-helpers-nextjs"
 
 type PublicTrip = {
   id: string
@@ -28,10 +35,11 @@ export default function CommunityPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchPublicTrips = async () => {
-      const supabase = createClient()
+    // 3) Instantiate the Supabase client on the browser:
+    const supabase: SupabaseClient<any> = createPagesBrowserClient()
 
-      // This is a simplified query - in a real app you'd join with users table
+    async function fetchPublicTrips() {
+      // 4) Query “trips” exactly as before:
       const { data, error } = await supabase
         .from("trips")
         .select(`
@@ -47,7 +55,7 @@ export default function CommunityPage() {
         .limit(12)
 
       if (!error && data) {
-        // Mock user data for now since we don't have proper joins
+        // 5) Mock user data (since we haven’t joined with profiles yet):
         const tripsWithUsers = data.map((trip) => ({
           ...trip,
           user: {
