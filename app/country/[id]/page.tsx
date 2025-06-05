@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import Image from "next/image"
-import { Globe, ArrowLeft, Search } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { useToast } from "@/hooks/use-toast"
-import useSWR from "swr"
-import { supabase } from "@/lib/supabase/client"
-import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
+import { Globe, ArrowLeft, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import useSWR from "swr";
+import { supabase } from "@/lib/supabase/client";
+import { useState, useEffect } from "react";
 
 // Country data (static fallback for things like flag, cities, etc.)
 const countryData = {
@@ -86,156 +86,161 @@ const countryData = {
     sortOptions: ["Restaurants", "Accommodations", "Landmarks"],
     destinations: [],
   },
-}
+};
 
 export default function CountryPage({ params }: { params: { id: string } }) {
-  const countrySlug = params.id
-  const router = useRouter()
-  const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null)
+  const countrySlug = params.id;
+  const router = useRouter();
+  const [currentUser, setCurrentUser] = useState<{ id: string } | null>(null);
 
   useEffect(() => {
-    // Grab the session’s user once on mount
+    // Grab the session's user once on mount
     supabase.auth.getUser().then(({ data: { user } }) => {
-      setCurrentUser(user ? { id: user.id } : null)
-    })
+      setCurrentUser(user ? { id: user.id } : null);
+    });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        setCurrentUser({ id: session.user.id })
+        setCurrentUser({ id: session.user.id });
       } else {
-        setCurrentUser(null)
+        setCurrentUser(null);
       }
-    })
+    });
     return () => {
-      subscription.unsubscribe()
-    }
-  }, [])
+      subscription.unsubscribe();
+    };
+  }, []);
 
-  const countryId = params.id
-  const country = countryData[countryId as keyof typeof countryData]
+  const countryId = params.id;
+  const country = countryData[countryId as keyof typeof countryData];
 
-  const [selectedCity, setSelectedCity] = useState<string | null>(null)
-  const [selectedSortOption, setSelectedSortOption] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [newQuestion, setNewQuestion] = useState("")
-  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({})
-  const { toast } = useToast()
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
+  const [selectedSortOption, setSelectedSortOption] = useState<string | null>(
+    null
+  );
+  const [searchQuery, setSearchQuery] = useState("");
+  const [newQuestion, setNewQuestion] = useState("");
+  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
+  const { toast } = useToast();
 
   if (!country) {
-    return <div>Country not found</div>
+    return <div>Country not found</div>;
   }
 
   // Only use .filter on destinations array that is guaranteed to exist.
   const filteredDestinations = country.destinations.filter((dest) => {
-    if (selectedCity && dest.city !== selectedCity) return false
-    if (selectedSortOption && dest.type !== selectedSortOption) return false
+    if (selectedCity && dest.city !== selectedCity) return false;
+    if (selectedSortOption && dest.type !== selectedSortOption) return false;
     if (
       searchQuery &&
       !dest.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
       !dest.city.toLowerCase().includes(searchQuery.toLowerCase()) &&
       !dest.type.toLowerCase().includes(searchQuery.toLowerCase())
     ) {
-      return false
+      return false;
     }
-    return true
-  })
+    return true;
+  });
 
   // fetch questions + replies from Supabase via SWR
-  const { data: questions, error, isLoading, mutate } = useSWR(
-    ["questions", countrySlug],
-    async () => {
-      const { data, error } = await supabase
-        .from("questions")
-
-        .select(`
+  const {
+    data: questions,
+    error,
+    isLoading,
+    mutate,
+  } = useSWR(["questions", countrySlug], async () => {
+    const { data, error } = await supabase
+      .from("questions")
+      .select(
+        `
           id,
           text,
           highlighted,
           created_at,
-          profiles:profiles!inner(username, avatar_url),
-          replies (
+          user:auth.users!inner (
+            id,
+            email,
+            user_metadata
+          ),
+          replies:replies (
             id,
             text,
             created_at,
-            profiles:profiles!inner(username, avatar_url)
+            user:auth.users!inner (id, email)
           )
-        `)
-        .eq("country_slug", countrySlug)
-        .order("created_at", { ascending: false })
+        `
+      )
+      .eq("country_slug", countrySlug)
+      .order("created_at", { ascending: false });
 
-      if (error) throw error
-      return data
-    }
-  )
+    if (error) throw error;
+    return data;
+  });
 
   /* post a new question */
   const postQuestion = async () => {
-    if (!newQuestion.trim() || !currentUser) return // refuse if no user is signed in
+    if (!newQuestion.trim() || !currentUser) return; // refuse if no user is signed in
 
-    const { data, error } = await supabase
-      .from("questions")
-      .insert({
-        country_slug: countrySlug,
-        user_id: currentUser.id, // ← include the logged‐in user’s ID
-        text: newQuestion.trim(),
-        highlighted: false,
-      })
+    const { data, error } = await supabase.from("questions").insert({
+      country_slug: countrySlug,
+      user_id: currentUser.id, // ← include the logged‐in user's ID
+      text: newQuestion.trim(),
+      highlighted: false,
+    });
 
     if (error) {
-      console.error("Error inserting question:", error)
+      console.error("Error inserting question:", error);
       toast({
         title: "Could not post question",
         description: error.message,
         variant: "destructive",
-      })
+      });
     } else {
       // Clear the input, then revalidate the SWR cache so the new question shows up
-      setNewQuestion("")
-      mutate()
+      setNewQuestion("");
+      mutate();
     }
-  }
+  };
 
   /* post a reply to a question */
   const postReply = async (qId: string) => {
-    const draft = replyDrafts[qId]?.trim()
-    if (!draft || !currentUser) return
+    const draft = replyDrafts[qId]?.trim();
+    if (!draft || !currentUser) return;
 
-    const { data, error } = await supabase
-      .from("replies")
-      .insert({
-        question_id: qId,
-        user_id: currentUser.id, // ← include the “user_id” here, too
-        text: draft,
-      })
+    const { data, error } = await supabase.from("replies").insert({
+      question_id: qId,
+      user_id: currentUser.id, // ← include the "user_id" here, too
+      text: draft,
+    });
 
     if (error) {
-      console.error("Error inserting reply:", error)
+      console.error("Error inserting reply:", error);
       toast({
         title: "Could not post reply",
         description: error.message,
         variant: "destructive",
-      })
+      });
     } else {
       // Clear that reply draft and revalidate
-      setReplyDrafts((d) => ({ ...d, [qId]: "" }))
-      mutate()
+      setReplyDrafts((d) => ({ ...d, [qId]: "" }));
+      mutate();
     }
-  }
+  };
 
-  // ⚠️ Here’s the guard: don’t call .filter on `questions` until it’s actually an array.
+  // ⚠️ Here's the guard: don't call .filter on `questions` until it's actually an array.
   const filteredQuestions = Array.isArray(questions)
     ? questions.filter((q: any) =>
         q.text.toLowerCase().includes(searchQuery.toLowerCase())
       )
-    : []
+    : [];
 
   if (error) {
-    return <div className="p-4 text-red-500">Error loading feed</div>
+    return <div className="p-4 text-red-500">Error loading feed</div>;
   }
   if (isLoading || !questions) {
-    return <div className="p-4 text-gray-500">Loading…</div>
+    return <div className="p-4 text-gray-500">Loading…</div>;
   }
 
   return (
@@ -293,9 +298,7 @@ export default function CountryPage({ params }: { params: { id: string } }) {
                             selectedCity === city ? "font-medium" : ""
                           }`}
                           onClick={() =>
-                            setSelectedCity(
-                              selectedCity === city ? null : city
-                            )
+                            setSelectedCity(selectedCity === city ? null : city)
                           }
                         >
                           {city}
@@ -439,8 +442,11 @@ export default function CountryPage({ params }: { params: { id: string } }) {
                           <div className="flex justify-between">
                             <div>
                               <span className="font-medium mr-2">
-                                {q.user?.display_name ?? "anon"}
+                                {q.user?.user_metadata?.username ?? "anon"}
                               </span>
+                              <em className="text-xs text-gray-600">
+                                ({q.user?.email ?? "unknown"})
+                              </em>
                               <div className="mt-1">{q.text}</div>
                             </div>
 
@@ -450,8 +456,8 @@ export default function CountryPage({ params }: { params: { id: string } }) {
                                 await supabase
                                   .from("questions")
                                   .update({ highlighted: !q.highlighted })
-                                  .eq("id", q.id)
-                                mutate()
+                                  .eq("id", q.id);
+                                mutate();
                               }}
                             >
                               {q.highlighted ? "★" : "☆"}
@@ -466,8 +472,11 @@ export default function CountryPage({ params }: { params: { id: string } }) {
                                 className="bg-white rounded px-3 py-2 text-sm"
                               >
                                 <strong className="mr-2">
-                                  {r.user?.display_name ?? "anon"}
+                                  {r.user?.user_metadata?.username ?? "anon"}
                                 </strong>
+                                <span className="text-xs text-gray-600">
+                                  ({r.user?.email ?? "unknown"})
+                                </span>
                                 <div className="mt-1">{r.text}</div>
                               </div>
                             ))}
@@ -517,5 +526,5 @@ export default function CountryPage({ params }: { params: { id: string } }) {
         </div>
       </footer>
     </div>
-  )
+  );
 }
