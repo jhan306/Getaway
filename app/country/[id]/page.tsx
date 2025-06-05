@@ -161,7 +161,7 @@ export default function CountryPage({ params }: { params: { id: string } }) {
         user:users_public!user_id (
           id,
           email
-          user_metadata
+          full_name
         )
       `)
       .eq("country_slug", countrySlug)
