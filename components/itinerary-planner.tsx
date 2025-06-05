@@ -499,8 +499,7 @@ export default function ItineraryPlanner({
       id: user.data.user.id,
       email: user.data.user.email,
       full_name: user.data.user.user_metadata?.full_name || null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      raw_user_meta_data: user.data.user.user_metadata || null,
     });
 
     if (userError) {
