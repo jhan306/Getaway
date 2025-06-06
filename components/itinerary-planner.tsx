@@ -10,39 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { ActivityCard } from "@/components/activity-card";
 import { cn } from "@/lib/utils";
 
-// SAMPLE DESTINATION DATA (unused in this example, but kept for future use if needed)
-const destinations = [
-  { id: "united_states", name: "United States", flag: "🇺🇸" },
-  { id: "canada", name: "Canada", flag: "🇨🇦" },
-  { id: "united_kingdom", name: "United Kingdom", flag: "🇬🇧" },
-  { id: "france", name: "France", flag: "🇫🇷" },
-  { id: "germany", name: "Germany", flag: "🇩🇪" },
-  { id: "japan", name: "Japan", flag: "🇯🇵" },
-  { id: "australia", name: "Australia", flag: "🇦🇺" },
-  { id: "brazil", name: "Brazil", flag: "🇧🇷" },
-  { id: "india", name: "India", flag: "🇮🇳" },
-  { id: "china", name: "China", flag: "🇨🇳" },
-  { id: "south_africa", name: "South Africa", flag: "🇿🇦" },
-  { id: "russia", name: "Russia", flag: "🇷🇺" },
-  { id: "mexico", name: "Mexico", flag: "🇲🇽" },
-  { id: "argentina", name: "Argentina", flag: "🇦🇷" },
-  { id: "egypt", name: "Egypt", flag: "🇪🇬" },
-  { id: "greece", name: "Greece", flag: "🇬🇷" },
-  { id: "italy", name: "Italy", flag: "🇮🇹" },
-  { id: "spain", name: "Spain", flag: "🇪🇸" },
-  { id: "south_korea", name: "South Korea", flag: "🇰🇷" },
-  { id: "netherlands", name: "Netherlands", flag: "🇳🇱" },
-  { id: "sweden", name: "Sweden", flag: "🇸🇪" },
-  { id: "norway", name: "Norway", flag: "🇳🇴" },
-  { id: "vietnam", name: "Vietnam", flag: "🇻🇳" },
-  { id: "philippines", name: "Philippines", flag: "🇵🇭" },
-  { id: "switzerland", name: "Switzerland", flag: "🇨🇭" },
-  { id: "portugal", name: "Portugal", flag: "🇵🇹" },
-  { id: "uae", name: "UAE", flag: "🇦🇪" },
-  { id: "peru", name: "Peru", flag: "🇵🇪" },
-  { id: "kenya", name: "Kenya", flag: "🇰🇪" },
-  { id: "thailand", name: "Thailand", flag: "🇹🇭" },
-];
+// SAMPLE DESTINATION DATA (now empty)
+const destinations: { id: string; name: string; flag: string }[] = [];
 
 // DURATION OPTIONS (for the “Add Activity” modal)
 const durationOptions = [
@@ -100,234 +69,8 @@ const activityTypes = {
   accommodation:{ name: "Accommodation",    color: "#FF9800" },
 };
 
-// INITIAL ACTIVITIES BY COUNTRY
-const activitiesByCountry = {
-  greece: [
-    {
-      id: "activity-1",
-      name: "Parthenon",
-      image: "/images/parthenon.jpg",
-      duration: "2 hours",
-      location: "Athens",
-      description: "Visit the iconic ancient Greek temple",
-      type: "sightseeing",
-      physicalRating: 3,
-      scenicRating: 5,
-      culturalRating: 5,
-    },
-    {
-      id: "activity-2",
-      name: "Acropolis Museum",
-      image: "/images/acropolis-museum.jpg",
-      duration: "3 hours",
-      location: "Athens",
-      description: "Explore artifacts from the Acropolis archaeological site",
-      type: "cultural",
-      physicalRating: 2,
-      scenicRating: 4,
-      culturalRating: 5,
-    },
-    {
-      id: "activity-3",
-      name: "Santorini Sunset",
-      image: "/images/santorini.jpg",
-      duration: "2 hours",
-      location: "Santorini",
-      description: "Watch the famous sunset over the caldera",
-      type: "leisure",
-      physicalRating: 1,
-      scenicRating: 5,
-      culturalRating: 3,
-    },
-    {
-      id: "activity-4",
-      name: "Mykonos Beaches",
-      image: "/images/mykonos.jpg",
-      duration: "4 hours",
-      location: "Mykonos",
-      description: "Relax at the beautiful beaches of Mykonos",
-      type: "leisure",
-      physicalRating: 2,
-      scenicRating: 5,
-      culturalRating: 2,
-    },
-    {
-      id: "activity-5",
-      name: "Delphi",
-      image: "/images/delphi.jpg",
-      duration: "5 hours",
-      location: "Delphi",
-      description: "Visit the ancient sanctuary of Apollo",
-      type: "tour",
-      physicalRating: 4,
-      scenicRating: 5,
-      culturalRating: 5,
-    },
-    {
-      id: "activity-6",
-      name: "Meteora Monasteries",
-      image: "/images/meteora.jpg",
-      duration: "6 hours",
-      location: "Meteora",
-      description: "Explore the monasteries built on natural rock pillars",
-      type: "tour",
-      physicalRating: 4,
-      scenicRating: 5,
-      culturalRating: 5,
-    },
-    {
-      id: "activity-7",
-      name: "Greek Cooking Class",
-      image: "/placeholder.svg?height=200&width=300",
-      duration: "3 hours",
-      location: "Athens",
-      description: "Learn to cook traditional Greek dishes",
-      type: "food",
-      physicalRating: 2,
-      scenicRating: 3,
-      culturalRating: 4,
-    },
-    {
-      id: "activity-8",
-      name: "Olympia",
-      image: "/placeholder.svg?height=200&width=300",
-      duration: "4 hours",
-      location: "Olympia",
-      description: "Visit the birthplace of the Olympic Games",
-      type: "sightseeing",
-      physicalRating: 3,
-      scenicRating: 4,
-      culturalRating: 5,
-    },
-    {
-      id: "activity-9",
-      name: "Corinth Canal",
-      image: "/placeholder.svg?height=200&width=300",
-      duration: "1 hour",
-      location: "Corinth",
-      description:
-        "See the narrow canal connecting the Gulf of Corinth with the Saronic Gulf",
-      type: "sightseeing",
-      physicalRating: 1,
-      scenicRating: 4,
-      culturalRating: 3,
-    },
-    {
-      id: "activity-10",
-      name: "Traditional Greek Taverna",
-      image: "/placeholder.svg?height=200&width=300",
-      duration: "2 hours",
-      location: "Athens",
-      description: "Enjoy authentic Greek cuisine with local specialties",
-      type: "food",
-      physicalRating: 1,
-      scenicRating: 3,
-      culturalRating: 4,
-    },
-    {
-      id: "activity-11",
-      name: "Athens City Tour",
-      image: "/placeholder.svg?height=200&width=300",
-      duration: "4 hours",
-      location: "Athens",
-      description: "Guided tour of Athens' main attractions",
-      type: "tour",
-      physicalRating: 3,
-      scenicRating: 4,
-      culturalRating: 5,
-    },
-    {
-      id: "activity-12",
-      name: "Greek Wine Tasting",
-      image: "/placeholder.svg?height=200&width=300",
-      duration: "2 hours",
-      location: "Santorini",
-      description: "Sample local Greek wines with expert guidance",
-      type: "food",
-      physicalRating: 1,
-      scenicRating: 4,
-      culturalRating: 4,
-    },
-  ],
-  italy: [
-    {
-      id: "italy-1",
-      name: "Colosseum",
-      image: "/placeholder.svg?height=200&width=300",
-      duration: "3 hours",
-      location: "Rome",
-      description: "Visit the iconic Roman amphitheater",
-      type: "sightseeing",
-      physicalRating: 3,
-      scenicRating: 5,
-      culturalRating: 5,
-    },
-    {
-      id: "italy-2",
-      name: "Vatican Museums",
-      image: "/placeholder.svg?height=200&width=300",
-      duration: "4 hours",
-      location: "Vatican City",
-      description: "Explore one of the world's greatest art collections",
-      type: "cultural",
-      physicalRating: 3,
-      scenicRating: 5,
-      culturalRating: 5,
-    },
-  ],
-  japan: [
-    {
-      id: "japan-1",
-      name: "Tokyo Tower",
-      image: "/placeholder.svg?height=200&width=300",
-      duration: "2 hours",
-      location: "Tokyo",
-      description: "Visit the iconic Tokyo Tower for panoramic views",
-      type: "sightseeing",
-      physicalRating: 2,
-      scenicRating: 5,
-      culturalRating: 3,
-    },
-    {
-      id: "japan-2",
-      name: "Fushimi Inari Shrine",
-      image: "/placeholder.svg?height=200&width=300",
-      duration: "3 hours",
-      location: "Kyoto",
-      description: "Walk through thousands of torii gates",
-      type: "cultural",
-      physicalRating: 4,
-      scenicRating: 5,
-      culturalRating: 5,
-    },
-  ],
-  france: [
-    {
-      id: "france-1",
-      name: "Eiffel Tower",
-      image: "/placeholder.svg?height=200&width=300",
-      duration: "3 hours",
-      location: "Paris",
-      description: "Visit the iconic Eiffel Tower",
-      type: "sightseeing",
-      physicalRating: 3,
-      scenicRating: 5,
-      culturalRating: 4,
-    },
-    {
-      id: "france-2",
-      name: "Louvre Museum",
-      image: "/placeholder.svg?height=200&width=300",
-      duration: "4 hours",
-      location: "Paris",
-      description: "Explore one of the world's largest art museums",
-      type: "cultural",
-      physicalRating: 2,
-      scenicRating: 5,
-      culturalRating: 5,
-    },
-  ],
-};
+// INITIAL ACTIVITIES BY COUNTRY (empty)
+const activitiesByCountry: Record<string, Activity[]> = {};
 
 // TIME SLOTS FOR THE CALENDAR
 const timeSlots = [
@@ -362,10 +105,10 @@ const formatTimeRange = (startTime: string, durationHours: number) => {
   } else if (startPeriod === "PM" && endHour > 12) {
     endHour -= 12;
   }
-  return `${rawHour}:${rawMin.padEnd(2, "0")}${startPeriod} - ${endHour}:${rawMin.padEnd(
+  return `${rawHour}:${rawMin.padEnd(
     2,
     "0"
-  )}${endPeriod}`;
+  )}${startPeriod} - ${endHour}:${rawMin.padEnd(2, "0")}${endPeriod}`;
 };
 
 // GENERATE A LOCAL-ONLY Trip OBJECT
@@ -382,12 +125,11 @@ function tripFlag(id: string) {
   if (id === "japan") return "🇯🇵";
   if (id === "italy") return "🇮🇹";
   if (id === "france") return "🇫🇷";
-  if (id === "greece") return "🇬🇷";
   return "🗺️";
 }
 
 export default function ItineraryPlanner({
-  countryId,
+  countryId = "",
   initialName,
 }: {
   countryId?: string;
@@ -397,19 +139,20 @@ export default function ItineraryPlanner({
   const [currentDate, setCurrentDate] = useState(new Date());
 
   // 1) Build the initial list of “available” activities based on `countryId`
-  //    (If `countryId` is invalid or missing, this array will be empty.)
   const initialAvail = [
     ...(activitiesByCountry[countryId as keyof typeof activitiesByCountry] || []),
   ];
 
   // 2) Choose the trip’s initial name: if `initialName` is passed, use that;
-  //    otherwise fall back to using the countryId itself (capitalized).
+  //    otherwise fall back to using countryId (capitalized) or "Custom".
   const initialTripName =
     initialName && initialName.trim() !== ""
       ? initialName.trim()
-      : countryId.charAt(0).toUpperCase() + countryId.slice(1);
+      : countryId
+      ? countryId.charAt(0).toUpperCase() + countryId.slice(1)
+      : "Custom";
 
-  // 3) Instantiate a brand‐new Trip object in local state (no Supabase anywhere here!)
+  // 3) Instantiate a brand‐new Trip object in local state
   const initialTrip: Trip = makeTrip(initialTripName, initialAvail);
 
   const [trips, setTrips] = useState<Trip[]>(() => [initialTrip]);
@@ -442,7 +185,7 @@ export default function ItineraryPlanner({
   const setScheduledActivities = (sched: ScheduledMap) =>
     updateTrip({ scheduled: sched });
 
-  // ----- Add a brand‐new Activity to “available” ----- 
+  // ----- Add a brand‐new Activity to “available” -----
   const saveNewActivity = () => {
     if (!newTitle.trim()) return;
 
@@ -684,7 +427,7 @@ export default function ItineraryPlanner({
         </Button>
       </div>
 
-      {/* ─── Trip selector bar (if you ever have multiple local Trip objects to switch between) ─── */}
+      {/* ─── Trip selector bar ─── */}
       <div className="flex items-center gap-4 mb-6">
         {trips.map((trip) => (
           <button
@@ -692,7 +435,9 @@ export default function ItineraryPlanner({
             onClick={() => setCurrentId(trip.id)}
             className={cn(
               "flex items-center gap-2 px-4 py-2 rounded-lg",
-              trip.id === currentId ? "bg-amber-200" : "bg-gray-800 text-white/80"
+              trip.id === currentId
+                ? "bg-amber-200"
+                : "bg-gray-800 text-white/80"
             )}
           >
             <span>{trip.flag}</span>
@@ -842,11 +587,9 @@ export default function ItineraryPlanner({
                                       <div className="flex items-center gap-1 text-black text-xs">
                                         <Tag className="h-3 w-3 text-black" />
                                         <span>
-                                          {
-                                            activityTypes[
-                                              scheduledActivity.type
-                                            ]?.name
-                                          }
+                                          {activityTypes[
+                                            scheduledActivity.type
+                                          ]?.name}
                                         </span>
                                       </div>
                                     </div>
