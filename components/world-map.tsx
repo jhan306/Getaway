@@ -63,7 +63,7 @@ const countryData = {
     destinationId: "japan",
   },
   AUS: {
-    value: 0,
+    value: 2,
     name: "Australia",
     flag: "🇦🇺",
     coordinates: [133.7751, -25.2744],
@@ -324,7 +324,7 @@ export default function WorldMap() {
         </ComposableMap>
       </TooltipProvider>
 
-      {/* 🏆 Most Explored Countries */}
+      {/* Current Most Explored Countries */}
       <div className="absolute bottom-4 left-4 bg-white p-4 rounded shadow-md text-sm w-[250px]">
         <div className="mb-2 font-bold text-lg">Top 5 Countries</div>
         <ol className="list-decimal list-inside space-y-1">
