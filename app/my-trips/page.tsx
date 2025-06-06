@@ -74,6 +74,43 @@ export default function MyTripsPage() {
     }
     setLoading(false);
   }
+  useEffect(() => {
+    // If there is no ?trip=… then we clean up loading immediately
+    if (!tripIdParam) {
+      toast.toast({
+        title: "No trip ID provided",
+        description: "Please open an existing trip from My Trips.",
+        variant: "destructive",
+      });
+      setLoading(false);
+      return;
+    }
+  
+    async function fetchTrip() {
+      setLoading(true);
+      const supabase: SupabaseClient<any> = createPagesBrowserClient();
+      const { data, error } = await supabase
+        .from("trips")
+        .select("id, name, country_id, flag")
+        .eq("id", tripIdParam)
+        .single();
+  
+      if (error || !data) {
+        toast.toast({
+          title: "Failed to load trip",
+          description: error?.message ?? "Unknown error",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+  
+      setTripData(data);
+      setLoading(false);
+    }
+  
+    fetchTrip();
+  }, [tripIdParam, toast]);
 
   useEffect(() => {
     if (!user) return;
