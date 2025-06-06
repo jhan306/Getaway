@@ -20,7 +20,6 @@ const countryData = {
   france: { name: "France", flag: "🇫🇷", cities: [], sortOptions: [], destinations: [] },
   japan: { name: "Japan", flag: "🇯🇵", cities: [], sortOptions: [], destinations: [] },
   usa: { name: "United States", flag: "🇺🇸", cities: [], sortOptions: [], destinations: [] },
-  china: { name: "China", flag: "🇨🇳", cities: [], sortOptions: [], destinations: [] },
   canada: { name: "Canada", flag: "🇨🇦", cities: [], sortOptions: [], destinations: [] },
   brazil: { name: "Brazil", flag: "🇧🇷", cities: [], sortOptions: [], destinations: [] },
   south_africa: { name: "South Africa", flag: "🇿🇦", cities: [], sortOptions: [], destinations: [] },

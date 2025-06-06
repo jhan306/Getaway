@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { Globe, ArrowLeft, Search } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Globe, ArrowLeft, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 // Country data
 const countryData = {
@@ -80,33 +80,38 @@ const countryData = {
     sortOptions: ["Restaurants", "Accommodations", "Landmarks"],
     destinations: [],
   },
-}
+};
 
 export default function BrowsePage({ params }: { params: { id: string } }) {
-  const countryId = params.id
-  const country = countryData[countryId as keyof typeof countryData]
+  const countryId = params.id;
+  const country = countryData[countryId as keyof typeof countryData];
 
-  const [selectedCity, setSelectedCity] = useState<string | null>(null)
-  const [selectedSortOption, setSelectedSortOption] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
+  const [selectedSortOption, setSelectedSortOption] = useState<string | null>(
+    null
+  );
+  const [searchQuery, setSearchQuery] = useState("");
 
   if (!country) {
-    return <div>Country not found</div>
+    return <div>Country not found</div>;
   }
 
   // Filter destinations based on selected city and sort option
   const filteredDestinations = country.destinations.filter((destination) => {
     if (selectedCity && destination.city !== selectedCity) {
-      return false
+      return false;
     }
     if (selectedSortOption && destination.type !== selectedSortOption) {
-      return false
+      return false;
     }
-    if (searchQuery && !destination.name.toLowerCase().includes(searchQuery.toLowerCase())) {
-      return false
+    if (
+      searchQuery &&
+      !destination.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ) {
+      return false;
     }
-    return true
-  })
+    return true;
+  });
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
@@ -118,10 +123,16 @@ export default function BrowsePage({ params }: { params: { id: string } }) {
             <span className="text-xl font-bold">Getaway</span>
           </div>
           <nav className="flex gap-4 sm:gap-6">
-            <Link href="/" className="text-sm font-medium hover:underline underline-offset-4">
+            <Link
+              href="/"
+              className="text-sm font-medium hover:underline underline-offset-4"
+            >
               Home
             </Link>
-            <Link href="/map" className="text-sm font-medium hover:underline underline-offset-4">
+            <Link
+              href="/map"
+              className="text-sm font-medium hover:underline underline-offset-4"
+            >
               Explore Map
             </Link>
           </nav>
@@ -153,9 +164,13 @@ export default function BrowsePage({ params }: { params: { id: string } }) {
                     {country.cities.map((city) => (
                       <li key={city}>
                         <button
-                          className={`text-left w-full hover:font-medium text-black ${selectedCity === city ? "font-medium" : ""}`}
+                          className={`text-left w-full hover:font-medium text-black ${
+                            selectedCity === city ? "font-medium" : ""
+                          }`}
                           onClick={() => {
-                            setSelectedCity(selectedCity === city ? null : city)
+                            setSelectedCity(
+                              selectedCity === city ? null : city
+                            );
                           }}
                         >
                           {city}
@@ -175,7 +190,9 @@ export default function BrowsePage({ params }: { params: { id: string } }) {
                             selectedSortOption === option ? "font-medium" : ""
                           }`}
                           onClick={() => {
-                            setSelectedSortOption(selectedSortOption === option ? null : option)
+                            setSelectedSortOption(
+                              selectedSortOption === option ? null : option
+                            );
                           }}
                         >
                           {option}
@@ -191,10 +208,16 @@ export default function BrowsePage({ params }: { params: { id: string } }) {
             <div>
               <div className="flex justify-between items-center mb-6">
                 <div className="flex gap-4">
-                  <Link href={`/country/${countryId}`} className="px-6 py-2 rounded-full bg-amber-200 text-black">
+                  <Link
+                    href={`/country/${countryId}`}
+                    className="px-6 py-2 rounded-full bg-amber-200 text-black"
+                  >
                     browse
                   </Link>
-                  <Link href={`/country/${countryId}/ask`} className="px-6 py-2 rounded-full bg-gray-300 text-black">
+                  <Link
+                    href={`/country/${countryId}/ask`}
+                    className="px-6 py-2 rounded-full bg-gray-300 text-black"
+                  >
                     ask
                   </Link>
                   <Link
@@ -207,7 +230,10 @@ export default function BrowsePage({ params }: { params: { id: string } }) {
               </div>
 
               <div className="relative mb-6">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <Search
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  size={18}
+                />
                 <Input
                   type="search"
                   placeholder="SEARCH"
@@ -259,10 +285,12 @@ export default function BrowsePage({ params }: { params: { id: string } }) {
         <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row px-4 md:px-6">
           <div className="flex items-center gap-2">
             <Globe className="h-5 w-5" />
-            <p className="text-sm text-muted-foreground">© 2024 Getaway. All rights reserved.</p>
+            <p className="text-sm text-muted-foreground">
+              © 2024 Getaway. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>
     </div>
-  )
+  );
 }

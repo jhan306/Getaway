@@ -39,6 +39,7 @@ type Trip = {
 
 export default function MyTripsPage() {
   const [trips, setTrips] = useState<Trip[]>([]);
+  const [plannerInitialName, setPlannerInitialName] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -355,6 +356,7 @@ export default function MyTripsPage() {
             <ItineraryPlanner
               countryId=""                  // start blank
               initialTripId={activePlannerTripId}
+              initialName={plannerInitialName}
             />
           </div>
         )}

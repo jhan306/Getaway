@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Globe, ArrowLeft, Search } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+import { useState } from "react";
+import Link from "next/link";
+import { Globe, ArrowLeft, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 // Country data
 const countryData = {
@@ -19,25 +19,25 @@ const countryData = {
         id: "q1",
         text: "What's the best time to visit Athens?",
         highlighted: false,
-        replies:[]
+        replies: [],
       },
       {
         id: "q2",
         text: "How many days should I spend in Santorini?",
         highlighted: true,
-        replies:[]
+        replies: [],
       },
       {
         id: "q3",
         text: "Is it worth visiting Meteora?",
         highlighted: false,
-        replies:[]
+        replies: [],
       },
       {
         id: "q4",
         text: "Best restaurants in Athens?",
         highlighted: false,
-        replies:[]
+        replies: [],
       },
     ],
   },
@@ -62,20 +62,22 @@ const countryData = {
     sortOptions: ["Restaurants", "Accommodations", "Landmarks"],
     questions: [],
   },
-}
+};
 
 export default function AskPage({ params }: { params: { id: string } }) {
-  const countryId = params.id
-  const country = countryData[countryId as keyof typeof countryData]
+  const countryId = params.id;
+  const country = countryData[countryId as keyof typeof countryData];
   if (!country) return <div>Country not found</div>;
   const [questions, setQuestions] = useState(() =>
     country.questions.map((q) => ({ ...q, replies: q.replies ?? [] }))
   );
 
-  const [selectedCity, setSelectedCity] = useState<string | null>(null)
-  const [selectedSortOption, setSelectedSortOption] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [newQuestion, setNewQuestion] = useState("")
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
+  const [selectedSortOption, setSelectedSortOption] = useState<string | null>(
+    null
+  );
+  const [searchQuery, setSearchQuery] = useState("");
+  const [newQuestion, setNewQuestion] = useState("");
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
 
   // Filter questions based on search query
@@ -85,14 +87,14 @@ export default function AskPage({ params }: { params: { id: string } }) {
 
   const handlePostQuestion = () => {
     if (!newQuestion.trim()) return;
-  
+
     const newQ = {
       id: `q${questions.length + 1}`,
       text: newQuestion.trim(),
       highlighted: false,
       replies: [],
     };
-  
+
     setQuestions([newQ, ...questions]);
     setNewQuestion("");
     alert(`Your question about ${country.name} has been posted!`);
@@ -101,17 +103,23 @@ export default function AskPage({ params }: { params: { id: string } }) {
   const handlePostReply = (qId: string) => {
     const draft = replyDrafts[qId]?.trim();
     if (!draft) return;
-  
+
     setQuestions((prev) =>
       prev.map((q) =>
         q.id === qId
-          ? { ...q, replies: [{ id: `r${q.replies.length + 1}`, text: draft }, ...q.replies] }
+          ? {
+              ...q,
+              replies: [
+                { id: `r${q.replies.length + 1}`, text: draft },
+                ...q.replies,
+              ],
+            }
           : q
       )
     );
     setReplyDrafts((d) => ({ ...d, [qId]: "" }));
   };
-  
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       {/* Navigation */}
@@ -122,10 +130,16 @@ export default function AskPage({ params }: { params: { id: string } }) {
             <span className="text-xl font-bold">Getaway</span>
           </div>
           <nav className="flex gap-4 sm:gap-6">
-            <Link href="/" className="text-sm font-medium hover:underline underline-offset-4">
+            <Link
+              href="/"
+              className="text-sm font-medium hover:underline underline-offset-4"
+            >
               Home
             </Link>
-            <Link href="/map" className="text-sm font-medium hover:underline underline-offset-4">
+            <Link
+              href="/map"
+              className="text-sm font-medium hover:underline underline-offset-4"
+            >
               Explore Map
             </Link>
           </nav>
@@ -157,9 +171,13 @@ export default function AskPage({ params }: { params: { id: string } }) {
                     {country.cities.map((city) => (
                       <li key={city}>
                         <button
-                          className={`text-left w-full hover:font-medium text-black ${selectedCity === city ? "font-medium" : ""}`}
+                          className={`text-left w-full hover:font-medium text-black ${
+                            selectedCity === city ? "font-medium" : ""
+                          }`}
                           onClick={() => {
-                            setSelectedCity(selectedCity === city ? null : city)
+                            setSelectedCity(
+                              selectedCity === city ? null : city
+                            );
                           }}
                         >
                           {city}
@@ -179,7 +197,9 @@ export default function AskPage({ params }: { params: { id: string } }) {
                             selectedSortOption === option ? "font-medium" : ""
                           }`}
                           onClick={() => {
-                            setSelectedSortOption(selectedSortOption === option ? null : option)
+                            setSelectedSortOption(
+                              selectedSortOption === option ? null : option
+                            );
                           }}
                         >
                           {option}
@@ -195,21 +215,29 @@ export default function AskPage({ params }: { params: { id: string } }) {
             <div>
               <div className="flex justify-between items-center mb-6">
                 <div className="flex gap-4">
-                  <Link href={`/country/${countryId}`} className="px-6 py-2 rounded-full bg-gray-300 text-black">
+                  <Link
+                    href={`/country/${countryId}`}
+                    className="px-6 py-2 rounded-full bg-gray-300 text-black"
+                  >
                     browse
                   </Link>
-                  <Link href={`/country/${countryId}/ask`} className="px-6 py-2 rounded-full bg-amber-200 text-black">
+                  <Link
+                    href={`/country/${countryId}/ask`}
+                    className="px-6 py-2 rounded-full bg-amber-200 text-black"
+                  >
                     ask
                   </Link>
                   <Link
                     href={`/country/${countryId}`}
                     className="px-6 py-2 rounded-full bg-gray-300 text-black"
                     onClick={(e) => {
-                      e.preventDefault()
-                      window.history.pushState({}, "", `/country/${countryId}`)
+                      e.preventDefault();
+                      window.history.pushState({}, "", `/country/${countryId}`);
                       document
                         .querySelector('[value="plan-trip"]')
-                        ?.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+                        ?.dispatchEvent(
+                          new MouseEvent("click", { bubbles: true })
+                        );
                     }}
                   >
                     plan trip
@@ -218,7 +246,10 @@ export default function AskPage({ params }: { params: { id: string } }) {
               </div>
 
               <div className="relative mb-6">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <Search
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  size={18}
+                />
                 <Input
                   type="search"
                   placeholder="SEARCH"
@@ -250,19 +281,25 @@ export default function AskPage({ params }: { params: { id: string } }) {
                   {filteredQuestions.map((q) => (
                     <div
                       key={q.id}
-                      className={`rounded-lg p-4 mb-3 ${q.highlighted ? "bg-gray-500" : "bg-gray-200"}`}
+                      className={`rounded-lg p-4 mb-3 ${
+                        q.highlighted ? "bg-gray-500" : "bg-gray-200"
+                      }`}
                     >
                       {/* QUESTION text + highlight toggle */}
                       <div className="flex justify-between items-start">
-                        <h3 className="text-lg font-medium text-black">{q.text}</h3>
-                  
+                        <h3 className="text-lg font-medium text-black">
+                          {q.text}
+                        </h3>
+
                         {/* ⭐ highlight toggle only */}
                         <button
                           className="rounded-full p-1 bg-gray-300"
                           onClick={() =>
                             setQuestions((prev) =>
                               prev.map((item) =>
-                                item.id === q.id ? { ...item, highlighted: !item.highlighted } : item
+                                item.id === q.id
+                                  ? { ...item, highlighted: !item.highlighted }
+                                  : item
                               )
                             )
                           }
@@ -270,33 +307,39 @@ export default function AskPage({ params }: { params: { id: string } }) {
                           {q.highlighted ? "★" : "☆"}
                         </button>
                       </div>
-                  
+
                       {/* REPLIES */}
-                        <div className="mt-3 space-y-2">
-                          {q.replies.map((r) => (
-                            <div key={r.id} className="bg-white rounded px-3 py-2 text-sm text-black">
-                              {r.text}
-                            </div>
-                          ))}
-                        
-                          <textarea
-                            rows={2}
-                            className="w-full bg-white border rounded p-2 text-sm"
-                            placeholder="Write a reply…"
-                            value={replyDrafts[q.id] ?? ""}
-                            onChange={(e) =>
-                              setReplyDrafts((d) => ({ ...d, [q.id]: e.target.value }))
-                            }
-                          />
-                          <Button
-                            size="sm"
-                            className="mt-1 bg-amber-200 text-black hover:bg-amber-300"
-                            disabled={!(replyDrafts[q.id] || "").trim()}
-                            onClick={() => handlePostReply(q.id)}
+                      <div className="mt-3 space-y-2">
+                        {q.replies.map((r) => (
+                          <div
+                            key={r.id}
+                            className="bg-white rounded px-3 py-2 text-sm text-black"
                           >
-                            Post reply
-                          </Button>
-                        </div>
+                            {r.text}
+                          </div>
+                        ))}
+
+                        <textarea
+                          rows={2}
+                          className="w-full bg-white border rounded p-2 text-sm"
+                          placeholder="Write a reply…"
+                          value={replyDrafts[q.id] ?? ""}
+                          onChange={(e) =>
+                            setReplyDrafts((d) => ({
+                              ...d,
+                              [q.id]: e.target.value,
+                            }))
+                          }
+                        />
+                        <Button
+                          size="sm"
+                          className="mt-1 bg-amber-200 text-black hover:bg-amber-300"
+                          disabled={!(replyDrafts[q.id] || "").trim()}
+                          onClick={() => handlePostReply(q.id)}
+                        >
+                          Post reply
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -311,10 +354,12 @@ export default function AskPage({ params }: { params: { id: string } }) {
         <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row px-4 md:px-6">
           <div className="flex items-center gap-2">
             <Globe className="h-5 w-5" />
-            <p className="text-sm text-muted-foreground">© 2024 Getaway. All rights reserved.</p>
+            <p className="text-sm text-muted-foreground">
+              © 2024 Getaway. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>
     </div>
-  )
+  );
 }
