@@ -1,19 +1,13 @@
 // app/community/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import useSWR from "swr";
+import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs";
 import Link from "next/link";
-import { MapPin, Users, Calendar, Eye } from "lucide-react";
+import { Calendar, Users, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Header from "@/components/header";
-
-// 1) Remove your old createClient import.
-// import { createClient } from "@/lib/supabase/client"
-
-// 2) Import the official Next.js “Pages” helper instead:
-import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs";
-import type { SupabaseClient } from "@supabase/auth-helpers-nextjs";
 
 type PublicTrip = {
   id: string;
@@ -21,79 +15,63 @@ type PublicTrip = {
   country_id: string;
   flag: string;
   created_at: string;
-  user: {
+  user?: {
+    id: string;
     full_name: string | null;
     email: string;
-  };
-  _count: {
-    activities: number;
   };
 };
 
 export default function CommunityPage() {
-  const [trips, setTrips] = useState<PublicTrip[]>([]);
-  const [loading, setLoading] = useState(true);
+  const supabase = createPagesBrowserClient();
 
-  useEffect(() => {
-    // 3) Instantiate the Supabase client on the browser:
-    const supabase: SupabaseClient<any> = createPagesBrowserClient();
-
-    async function fetchPublicTrips() {
-      // 4) Query “trips” exactly as before:
-      const { data, error } = await supabase
-        .from("trips")
-        .select(
-          `
-          id,
-          name,
-          country_id,
-          flag,
-          created_at,
-          activities(count)
-          user:users_public!user_id (
-            full_name,
-            email
+  const fetcher = async () => {
+    const { data, error } = await supabase
+      .from("trips")
+      .select(
         `
+        id,
+        name,
+        country_id,
+        flag,
+        created_at,
+        user:users_public!trips_user_id_fkey (
+          id,
+          full_name,
+          email
         )
-        .eq("is_public", true)
-        .order("created_at", { ascending: false })
-        .limit(12);
+      `
+      )
+      .eq("is_public", true)
+      .order("created_at", { ascending: false })
+      .limit(12);
 
-      if (!error && data) {
-        // 5) Mock user data (since we haven’t joined with profiles yet):
-        const shaped: PublicTrip[] = data.map((trip) => ({
-          id: trip.id,
-          name: trip.name,
-          country_id: trip.country_id,
-          flag: trip.flag,
-          created_at: trip.created_at,
-          user: {
-            full_name: trip.user?.full_name ?? "Anonymous",
-            email: trip.user?.email ?? "",
-          },
-          _count: {
-            activities: trip.activities?.[0]?.count ?? 0,
-          },
-        }));
-        setTrips(shaped);
-      }
+    if (error) throw error;
+    return data;
+  };
 
-      setLoading(false);
-    }
+  const {
+    data: trips,
+    error,
+    isLoading,
+  } = useSWR<PublicTrip[]>("publicTrips", fetcher);
 
-    fetchPublicTrips();
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex flex-col min-h-screen">
         <Header />
-        <main className="flex-1 container px-4 py-8">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p>Loading community trips...</p>
-          </div>
+        <main className="flex-1 container px-4 py-8 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4" />
+          Loading community trips...
         </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto py-8">
+        <p className="text-red-600">Error loading trips: {error.message}</p>
       </div>
     );
   }
@@ -101,7 +79,6 @@ export default function CommunityPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-
       <main className="flex-1 container px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Community Trips</h1>
@@ -111,32 +88,24 @@ export default function CommunityPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {trips.map((trip) => (
+          {trips?.map((trip) => (
             <Card key={trip.id} className="hover:shadow-lg transition-shadow">
               <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">{trip.flag}</span>
-                    <CardTitle className="text-lg">{trip.name}</CardTitle>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">{trip.flag}</span>
+                  <CardTitle className="text-lg">{trip.name}</CardTitle>
                 </div>
                 <p className="text-sm text-gray-600">
-                  by {trip.user.full_name || "Anonymous"}
+                  by {trip.user?.full_name ?? "Anonymous"}
                 </p>
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="space-y-3">
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-4 w-4" />
-                      <span>{trip._count.activities} activities</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      <span>
-                        {new Date(trip.created_at).toLocaleDateString()}
-                      </span>
-                    </div>
+                  <div className="flex items-center gap-1 text-sm text-gray-600">
+                    <Calendar className="h-4 w-4" />
+                    <span>
+                      {new Date(trip.created_at).toLocaleDateString()}
+                    </span>
                   </div>
 
                   <div className="flex gap-2">
@@ -153,7 +122,7 @@ export default function CommunityPage() {
           ))}
         </div>
 
-        {trips.length === 0 && (
+        {trips?.length === 0 && (
           <div className="text-center py-12">
             <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium mb-2">No public trips yet</h3>
