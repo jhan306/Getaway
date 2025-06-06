@@ -27,7 +27,11 @@ const getFillColor = (value?: number) => {
   return interpolateSinebow(colorScale(value))
 }
 
-const countryData = {
+const countryData: Record<string, {
+  value: number
+  coordinates: [number, number]
+  destinationId: string
+}> = {
   USA: { value: 0, coordinates: [-98.5795, 39.8283], destinationId: "united_states" },
   CAN: { value: 4, coordinates: [-106.3468, 56.1304], destinationId: "canada" },
   GBR: { value: 0, coordinates: [-3.436, 55.3781], destinationId: "united_kingdom" },
@@ -80,8 +84,8 @@ export default function WorldMap() {
               {({ geographies }) =>
                 geographies.map((geo) => {
                   const iso = geo.properties.ISO_A3
-                  const data = countryData[iso]
-                  const isClickable = !!data?.destinationId
+                  const data = countryData[iso] ?? { value: 0 }
+                  const isClickable = !!countryData[iso]?.destinationId
 
                   return (
                     <Tooltip key={geo.rsmKey}>
@@ -90,23 +94,25 @@ export default function WorldMap() {
                           geography={geo}
                           onMouseEnter={() => {
                             const name = geo.properties.NAME
-                            const count = data?.value ?? 0
+                            const count = data.value
                             const hint = isClickable ? " (Click to view)" : ""
                             setTooltipContent(`${name}${hint} — ${count} submissions`)
                           }}
                           onMouseLeave={() => setTooltipContent("")}
                           onClick={() => {
                             if (isClickable) {
-                              router.push(`/country/${data.destinationId}`)
+                              router.push(`/country/${countryData[iso].destinationId}`)
                             } else {
                               setActiveCountries((prev) =>
-                                prev.includes(iso) ? prev.filter((c) => c !== iso) : [...prev, iso]
+                                prev.includes(iso)
+                                  ? prev.filter((c) => c !== iso)
+                                  : [...prev, iso]
                               )
                             }
                           }}
                           style={{
                             default: {
-                              fill: getFillColor(data?.value),
+                              fill: getFillColor(data.value),
                               stroke: "#FFFFFF",
                               strokeWidth: 0.5,
                             },
@@ -123,7 +129,9 @@ export default function WorldMap() {
                           }}
                         />
                       </TooltipTrigger>
-                      <TooltipContent className="text-white !important">{tooltipContent}</TooltipContent>
+                      <TooltipContent className="text-white !important">
+                        {tooltipContent}
+                      </TooltipContent>
                     </Tooltip>
                   )
                 })
@@ -142,7 +150,9 @@ export default function WorldMap() {
                     } else if (!activeCountries.includes(code)) {
                       setActiveCountries((prev) => [...prev, code])
                     } else {
-                      setActiveCountries((prev) => prev.filter((c) => c !== code))
+                      setActiveCountries((prev) =>
+                        prev.filter((c) => c !== code)
+                      )
                     }
                   }}
                 />
