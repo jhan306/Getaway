@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import { MapPin, Clock, X, Tag, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ActivityCard } from "@/components/activity-card";
@@ -220,11 +220,18 @@ export default function ItineraryPlanner({
   // ────────────────────────────────────────────────────────────────────────────
 
   // ─── 4) Secondary effect: whenever countryId changes, re‐initialize if “available” is empty ───
+
   useEffect(() => {
     if (!tripState) return;
+
+    // Only if there are currently zero “available” activities…
     if (tripState.available.length === 0) {
       const freshAvail = activitiesByCountry[countryId] || [];
-      saveItinerary(freshAvail, {});
+
+      // …and only if that default list is non‐empty, seed it once:
+      if (freshAvail.length > 0) {
+        saveItinerary(freshAvail, {});
+      }
     }
   }, [countryId, tripState]);
   // ────────────────────────────────────────────────────────────────────────────
@@ -563,6 +570,7 @@ export default function ItineraryPlanner({
                             droppableId={`calendar|${dateStr}|${time}`}
                             isDropDisabled={Boolean(scheduledActivity)}
                             isCombineEnabled={false}
+                            ignoreContainerClipping={false}
                           >
                             {(provided, snapshot) => (
                               <div
@@ -648,7 +656,10 @@ export default function ItineraryPlanner({
           </Card>
 
           {/* ─── Activities Panel ─── */}
-          <div className="bg-white rounded-lg border max-h-[calc(100vh-300px)] flex flex-col">
+          <div
+            key="activities-panel"
+            className="bg-white rounded-lg border max-h-[calc(100vh-300px)] flex flex-col"
+          >
             <div className="p-4 border-b flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-black">
@@ -673,6 +684,7 @@ export default function ItineraryPlanner({
               droppableId="activities"
               isDropDisabled={false}
               isCombineEnabled={false}
+              ignoreContainerClipping={false}
             >
               {(provided, snapshot) => (
                 <div
