@@ -1,3 +1,4 @@
+// app/community/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -42,17 +43,17 @@ export default function CommunityPage() {
       const { data, error } = await supabase
         .from("trips")
         .select(
-          
+          `
           id,
           name,
           country_id,
           flag,
           created_at,
-          activities(count),
+          activities(count)
           user:users_public!user_id (
             full_name,
             email
-        
+        `
         )
         .eq("is_public", true)
         .order("created_at", { ascending: false })
@@ -140,7 +141,7 @@ export default function CommunityPage() {
 
                   <div className="flex gap-2">
                     <Button asChild size="sm" className="flex-1">
-                      <Link href={/trip/${trip.id}}>
+                      <Link href={`/trip/${trip.id}`}>
                         <Eye className="h-4 w-4 mr-1" />
                         View Trip
                       </Link>
