@@ -15,8 +15,17 @@ import {
   TooltipContent,
   TooltipProvider,
 } from "@/components/ui/tooltip"
+import { scaleLinear } from "d3-scale"
+import { interpolateSinebow } from "d3-scale-chromatic"
 
 const geoUrl = "https://unpkg.com/world-atlas@2.0.2/countries-110m.json"
+
+const colorScale = scaleLinear().domain([1, 10]).clamp(true).range([0, 1])
+
+const getFillColor = (value?: number) => {
+  if (!value || value < 1) return "#f0f0f0"
+  return interpolateSinebow(colorScale(value))
+}
 
 const countryData = {
   USA: { value: 0, coordinates: [-98.5795, 39.8283], destinationId: "united_states" },
@@ -49,11 +58,6 @@ const countryData = {
   PER: { value: 0, coordinates: [-75.0152, -9.1899], destinationId: "peru" },
   KEN: { value: 0, coordinates: [37.9062, -0.0236], destinationId: "kenya" },
   THA: { value: 0, coordinates: [100.9925, 15.87], destinationId: "thailand" },
-}
-
-const getFillColor = (value?: number) => {
-  if (!value || value < 1) return "#f0f0f0"
-  return "#ff5733" // static color for now
 }
 
 export default function WorldMap() {
@@ -103,6 +107,7 @@ export default function WorldMap() {
                           style={{
                             default: {
                               fill: getFillColor(data?.value),
+                              fillOpacity: 1,
                               outline: "none",
                               stroke: "#FFFFFF",
                               strokeWidth: 0.5,
