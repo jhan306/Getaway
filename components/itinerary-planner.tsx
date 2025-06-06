@@ -8,6 +8,9 @@ import { Card, CardContent } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { ActivityCard } from "@/components/activity-card"
 import { cn } from "@/lib/utils"
+import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs"
+import type { SupabaseClient } from "@supabase/auth-helpers-nextjs"
+
 
 // Sample destination data
 const destinations = [
@@ -341,7 +344,7 @@ const makeTrip = (name: string, startActivities: Activity[] = []): Trip => ({
   scheduled: {},
 })
 
-export default function ItineraryPlanner({countryId = "greece", onTripCreated,}: {countryId?: string; onTripCreated?: (newTrip: Trip) => void}) {
+export default function ItineraryPlanner({ countryId = "greece" }: { countryId?: string }) {
   const { toast } = useToast()
   const [currentDate, setCurrentDate] = useState(new Date())
 
@@ -367,15 +370,66 @@ export default function ItineraryPlanner({countryId = "greece", onTripCreated,}:
   const setScheduledActivities = (sched: ScheduledMap) => updateTrip({ scheduled: sched })
 
   // ----- Add‐trip handler -------------------------------------
-  const addTrip = () => {
+  const addTrip = async () => {
     const name = prompt("Give your trip a name (e.g. Spain 2026)")?.trim()
     if (!name) return
-    const newTrip = makeTrip(name)
-    setTrips((prev) => [...prev, newTrip])
-    setCurrentId(newTrip.id)
-    if (onTripCreated) {
-      onTripCreated(newTrip)
+  
+    // 1) Instantiate Supabase client
+    const supabase: SupabaseClient<any> = createPagesBrowserClient()
+  
+    // 2) Insert directly into the "trips" table with is_public=false
+    const { data: insertedTrip, error } = await supabase
+      .from("trips")
+      .insert([
+        {
+          name: name,
+          country_id: countryId,
+          flag: tripFlag(countryId),
+          is_public: false,
+          // (assuming your table has a user_id column set by RLS)
+        },
+      ])
+      .select(
+        `
+        id,
+        name,
+        country_id,
+        flag,
+        is_public,
+        created_at,
+        updated_at,
+        activities(count)
+      `
+      )
+      .single()
+  
+    if (error || !insertedTrip) {
+      toast({
+        title: "Failed to create trip",
+        description: error?.message ?? "Unknown error",
+        variant: "destructive",
+      })
+      return
     }
+  
+    // 3) Set the newly‐created trip as the “current” one in this planner,
+    //     so the user can immediately begin scheduling activities:
+    setTrips((prev) => [
+      ...prev,
+      {
+        id: insertedTrip.id,
+        name: insertedTrip.name,
+        flag: insertedTrip.flag,
+        available: [...initialAvail], // use your existing available logic
+        scheduled: {},
+      },
+    ])
+    setCurrentId(insertedTrip.id)
+  
+    toast({
+      title: "Trip created (private)",
+      description: "You can now schedule activities. Toggle public when ready.",
+    })
   }
   const saveNewActivity = () => {
     if (!newTitle.trim()) return
