@@ -48,7 +48,7 @@ export default function CommunityPage() {
           country_id,
           flag,
           created_at,
-          activities(count)
+          activities(count),
           user:users_public!user_id (
             full_name,
             email
