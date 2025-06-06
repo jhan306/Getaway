@@ -139,7 +139,8 @@ export default function MyTripsPage() {
         {
           name: "Sample Greece Trip",
           country_id: "greece",
-          flag: "🇬🇷",
+          country_id: "", 
+          flag: "🗺️", 
           is_public: false,
           user_id: user.id,
         },
