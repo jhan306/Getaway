@@ -8,6 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Header from "@/components/header";
 
+// 1) Remove your old createClient import.
+// import { createClient } from "@/lib/supabase/client"
+
+// 2) Import the official Next.js “Pages” helper instead:
 import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs";
 import type { SupabaseClient } from "@supabase/auth-helpers-nextjs";
 
@@ -31,62 +35,46 @@ export default function CommunityPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // 3) Instantiate the Supabase client on the browser:
     const supabase: SupabaseClient<any> = createPagesBrowserClient();
 
     async function fetchPublicTrips() {
+      // 4) Query “trips” exactly as before:
       const { data, error } = await supabase
         .from("trips")
-        .select(`
+        .select(
+          `
           id,
           name,
           country_id,
           flag,
           created_at,
-
-          /* ← Note the comma here after activities(count) */
-          activities(count),
-
-          /* ← Close parentheses/bracket for the join, then close the template string */
+          activities(count)
           user:users_public!user_id (
             full_name,
             email
-          )
-        `)
+        `
+        )
         .eq("is_public", true)
         .order("created_at", { ascending: false })
         .limit(12);
 
-      if (error) {
-        console.error("Error fetching public trips:", error);
-        setTrips([]);
-        setLoading(false);
-        return;
-      }
-
-      if (data) {
-        const shaped: PublicTrip[] = data.map((trip: any) => {
-          const countObj = Array.isArray(trip.activities) ? trip.activities[0] : null;
-          const activityCount: number =
-            countObj && typeof countObj.count === "number"
-              ? countObj.count
-              : 0;
-
-          return {
-            id: trip.id,
-            name: trip.name,
-            country_id: trip.country_id,
-            flag: trip.flag,
-            created_at: trip.created_at,
-            user: {
-              full_name: trip.user?.full_name ?? "Anonymous",
-              email: trip.user?.email ?? "",
-            },
-            _count: {
-              activities: activityCount,
-            },
-          };
-        });
-
+      if (!error && data) {
+        // 5) Mock user data (since we haven’t joined with profiles yet):
+        const shaped: PublicTrip[] = data.map((trip) => ({
+          id: trip.id,
+          name: trip.name,
+          country_id: trip.country_id,
+          flag: trip.flag,
+          created_at: trip.created_at,
+          user: {
+            full_name: trip.user?.full_name ?? "Anonymous",
+            email: trip.user?.email ?? "",
+          },
+          _count: {
+            activities: trip.activities?.[0]?.count ?? 0,
+          },
+        }));
         setTrips(shaped);
       }
 
@@ -141,10 +129,7 @@ export default function CommunityPage() {
                   <div className="flex items-center gap-4 text-sm text-gray-600">
                     <div className="flex items-center gap-1">
                       <MapPin className="h-4 w-4" />
-                      <span>
-                        {trip._count.activities}{" "}
-                        {trip._count.activities === 1 ? "activity" : "activities"}
-                      </span>
+                      <span>{trip._count.activities} activities</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
