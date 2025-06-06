@@ -341,7 +341,7 @@ const makeTrip = (name: string, startActivities: Activity[] = []): Trip => ({
   scheduled: {},
 })
 
-export default function ItineraryPlanner({countryId = "greece", onTripCreated,}: {countryId?: string onTripCreated?: (newTrip: Trip) => void}) {
+export default function ItineraryPlanner({countryId = "greece", onTripCreated,}: {countryId?: string; onTripCreated?: (newTrip: Trip) => void}) {
   const { toast } = useToast()
   const [currentDate, setCurrentDate] = useState(new Date())
 
