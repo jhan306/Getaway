@@ -15,39 +15,217 @@ import { useState, useEffect } from "react";
 
 // Country data (static fallback for things like flag, cities, etc.)
 const countryData = {
-  greece: { name: "Greece", flag: "🇬🇷", cities: [], sortOptions: [], destinations: [] },
-  italy: { name: "Italy", flag: "🇮🇹", cities: [], sortOptions: [], destinations: [] },
-  france: { name: "France", flag: "🇫🇷", cities: [], sortOptions: [], destinations: [] },
-  japan: { name: "Japan", flag: "🇯🇵", cities: [], sortOptions: [], destinations: [] },
-  usa: { name: "United States", flag: "🇺🇸", cities: [], sortOptions: [], destinations: [] },
-  canada: { name: "Canada", flag: "🇨🇦", cities: [], sortOptions: [], destinations: [] },
-  brazil: { name: "Brazil", flag: "🇧🇷", cities: [], sortOptions: [], destinations: [] },
-  south_africa: { name: "South Africa", flag: "🇿🇦", cities: [], sortOptions: [], destinations: [] },
-  egypt: { name: "Egypt", flag: "🇪🇬", cities: [], sortOptions: [], destinations: [] },
-  india: { name: "India", flag: "🇮🇳", cities: [], sortOptions: [], destinations: [] },
-  australia: { name: "Australia", flag: "🇦🇺", cities: [], sortOptions: [], destinations: [] },
-  thailand: { name: "Thailand", flag: "🇹🇭", cities: [], sortOptions: [], destinations: [] },
-  mexico: { name: "Mexico", flag: "🇲🇽", cities: [], sortOptions: [], destinations: [] },
-  argentina: { name: "Argentina", flag: "🇦🇷", cities: [], sortOptions: [], destinations: [] },
-  south_korea: { name: "South Korea", flag: "🇰🇷", cities: [], sortOptions: [], destinations: [] },
-  germany: { name: "Germany", flag: "🇩🇪", cities: [], sortOptions: [], destinations: [] },
-  uk: { name: "United Kingdom", flag: "🇬🇧", cities: [], sortOptions: [], destinations: [] },
-  spain: { name: "Spain", flag: "🇪🇸", cities: [], sortOptions: [], destinations: [] },
-  indonesia: { name: "Indonesia", flag: "🇮🇩", cities: [], sortOptions: [], destinations: [] },
-  turkey: { name: "Turkey", flag: "🇹🇷", cities: [], sortOptions: [], destinations: [] },
-  sweden: { name: "Sweden", flag: "🇸🇪", cities: [], sortOptions: [], destinations: [] },
-  norway: { name: "Norway", flag: "🇳🇴", cities: [], sortOptions: [], destinations: [] },
-  vietnam: { name: "Vietnam", flag: "🇻🇳", cities: [], sortOptions: [], destinations: [] },
-  philippines: { name: "Philippines", flag: "🇵🇭", cities: [], sortOptions: [], destinations: [] },
-  netherlands: { name: "Netherlands", flag: "🇳🇱", cities: [], sortOptions: [], destinations: [] },
-  switzerland: { name: "Switzerland", flag: "🇨🇭", cities: [], sortOptions: [], destinations: [] },
-  portugal: { name: "Portugal", flag: "🇵🇹", cities: [], sortOptions: [], destinations: [] },
-  uae: { name: "United Arab Emirates", flag: "🇦🇪", cities: [], sortOptions: [], destinations: [] },
-  peru: { name: "Peru", flag: "🇵🇪", cities: [], sortOptions: [], destinations: [] },
-  kenya: { name: "Kenya", flag: "🇰🇪", cities: [], sortOptions: [], destinations: [] },
+  greece: {
+    name: "Greece",
+    flag: "🇬🇷",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  italy: {
+    name: "Italy",
+    flag: "🇮🇹",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  france: {
+    name: "France",
+    flag: "🇫🇷",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  japan: {
+    name: "Japan",
+    flag: "🇯🇵",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  usa: {
+    name: "United States",
+    flag: "🇺🇸",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  canada: {
+    name: "Canada",
+    flag: "🇨🇦",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  brazil: {
+    name: "Brazil",
+    flag: "🇧🇷",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  south_africa: {
+    name: "South Africa",
+    flag: "🇿🇦",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  egypt: {
+    name: "Egypt",
+    flag: "🇪🇬",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  india: {
+    name: "India",
+    flag: "🇮🇳",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  australia: {
+    name: "Australia",
+    flag: "🇦🇺",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  thailand: {
+    name: "Thailand",
+    flag: "🇹🇭",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  mexico: {
+    name: "Mexico",
+    flag: "🇲🇽",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  argentina: {
+    name: "Argentina",
+    flag: "🇦🇷",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  south_korea: {
+    name: "South Korea",
+    flag: "🇰🇷",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  germany: {
+    name: "Germany",
+    flag: "🇩🇪",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  uk: {
+    name: "United Kingdom",
+    flag: "🇬🇧",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  spain: {
+    name: "Spain",
+    flag: "🇪🇸",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  indonesia: {
+    name: "Indonesia",
+    flag: "🇮🇩",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  turkey: {
+    name: "Turkey",
+    flag: "🇹🇷",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  sweden: {
+    name: "Sweden",
+    flag: "🇸🇪",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  norway: {
+    name: "Norway",
+    flag: "🇳🇴",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  vietnam: {
+    name: "Vietnam",
+    flag: "🇻🇳",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  philippines: {
+    name: "Philippines",
+    flag: "🇵🇭",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  netherlands: {
+    name: "Netherlands",
+    flag: "🇳🇱",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  switzerland: {
+    name: "Switzerland",
+    flag: "🇨🇭",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  portugal: {
+    name: "Portugal",
+    flag: "🇵🇹",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  uae: {
+    name: "United Arab Emirates",
+    flag: "🇦🇪",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  peru: {
+    name: "Peru",
+    flag: "🇵🇪",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
+  kenya: {
+    name: "Kenya",
+    flag: "🇰🇪",
+    cities: [],
+    sortOptions: [],
+    destinations: [],
+  },
 };
-
-
 
 export default function CountryPage({ params }: { params: { id: string } }) {
   const countrySlug = params.id;
@@ -349,130 +527,162 @@ export default function CountryPage({ params }: { params: { id: string } }) {
                 </TabsList>
 
                 <TabsContent value="ask" className="mt-0">
-                  <div className="relative mb-6">
-                    <Search
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                      size={18}
-                    />
-                    <Input
-                      type="search"
-                      placeholder="SEARCH"
-                      className="pl-10 bg-gray-200 border-none"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                  </div>
+                  {/* 1) Wrap both columns in a flex container */}
+                  <div className="flex flex-col md:flex-row gap-6">
+                    {/* ─── Left column: search + question form + list ─── */}
+                    <div className="flex-1 space-y-4">
+                      {/* Search bar */}
+                      <div className="relative mb-6">
+                        <Search
+                          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                          size={18}
+                        />
+                        <Input
+                          type="search"
+                          placeholder="SEARCH"
+                          className="pl-10 bg-gray-200 border-none"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                      </div>
 
-                  <div className="space-y-4">
-                    <div className="bg-gray-200 rounded-lg p-4">
-                      <h3 className="text-lg font-medium">Question</h3>
-                      <Textarea
-                        placeholder={`Ask a question about ${country.name}...`}
-                        className="mt-2 bg-white"
-                        value={newQuestion}
-                        onChange={(e) => setNewQuestion(e.target.value)}
-                      />
-                      <Button
-                        className="mt-4 bg-amber-200 text-black hover:bg-amber-300"
-                        onClick={postQuestion}
-                        disabled={!newQuestion.trim()}
-                      >
-                        Post Question
-                      </Button>
-                    </div>
-
-                    <div className="max-h-[400px] overflow-y-auto pr-2">
-                      {filteredQuestions.map((q: any) => (
-                        <div
-                          key={q.id}
-                          className="rounded-lg p-4 mb-3 bg-gray-200"
+                      {/* Post a new question */}
+                      <div className="bg-gray-200 rounded-lg p-4">
+                        <h3 className="text-lg font-medium">Question</h3>
+                        <Textarea
+                          placeholder={`Ask a question about ${country.name}...`}
+                          className="mt-2 bg-white"
+                          value={newQuestion}
+                          onChange={(e) => setNewQuestion(e.target.value)}
+                        />
+                        <Button
+                          className="mt-4 bg-amber-200 text-black hover:bg-amber-300"
+                          onClick={postQuestion}
+                          disabled={!newQuestion.trim()}
                         >
-                          {/* question header */}
-                          <div className="flex justify-between">
-                            <div>
-                              <span className="font-medium mr-2">
-                                {q.user?.full_name ?? "anon"}
-                              </span>
-                              <div className="mt-1">{q.text}</div>
-                            </div>
+                          Post Question
+                        </Button>
+                      </div>
 
-                            <div className="flex gap-2 items-center">
-                              <button
-                                className="rounded-full p-1 bg-gray-300"
-                                onClick={async () => {
-                                  await supabase
-                                    .from("questions")
-                                    .update({ highlighted: !q.highlighted })
-                                    .eq("id", q.id);
-                                  mutate();
-                                }}
-                              >
-                                {q.highlighted ? "★" : "☆"}
-                              </button>
-                              {q.user?.id === currentUser?.id && (
-                                <Button
-                                  size="icon"
-                                  variant="outline"
-                                  className="text-red-600 hover:text-red-700"
-                                  onClick={() => deleteQuestion(q.id)}
+                      {/* List of existing questions + replies */}
+                      <div className="max-h-[400px] overflow-y-auto pr-2">
+                        {filteredQuestions.map((q: any) => (
+                          <div
+                            key={q.id}
+                            className="rounded-lg p-4 mb-3 bg-gray-200"
+                          >
+                            {/* question header */}
+                            <div className="flex justify-between">
+                              <div>
+                                <span className="font-medium mr-2">
+                                  {q.user?.full_name ?? "anon"}
+                                </span>
+                                <div className="mt-1">{q.text}</div>
+                              </div>
+
+                              <div className="flex gap-2 items-center">
+                                <button
+                                  className="rounded-full p-1 bg-gray-300"
+                                  onClick={async () => {
+                                    await supabase
+                                      .from("questions")
+                                      .update({ highlighted: !q.highlighted })
+                                      .eq("id", q.id);
+                                    mutate();
+                                  }}
                                 >
-                                  🗑️
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* replies */}
-                          <div className="mt-3 space-y-2">
-                            {q.replies?.map((r: any) => (
-                              <div
-                                key={r.id}
-                                className="bg-white rounded px-3 py-2 text-sm flex justify-between items-center"
-                              >
-                                <div>
-                                  <strong className="mr-2">
-                                    {r.user?.full_name ?? "anon"}
-                                  </strong>
-                                  <div className="mt-1">{r.text}</div>
-                                </div>
-                                {r.user?.id === currentUser?.id && (
+                                  {q.highlighted ? "★" : "☆"}
+                                </button>
+                                {q.user?.id === currentUser?.id && (
                                   <Button
                                     size="icon"
                                     variant="outline"
-                                    className="text-red-600 hover:text-red-700 ml-2"
-                                    onClick={() => deleteReply(r.id)}
+                                    className="text-red-600 hover:text-red-700"
+                                    onClick={() => deleteQuestion(q.id)}
                                   >
                                     🗑️
                                   </Button>
                                 )}
                               </div>
-                            ))}
+                            </div>
 
-                            {/* composer */}
-                            <textarea
-                              rows={2}
-                              className="w-full bg-white border rounded p-2 text-sm"
-                              placeholder="Write a reply…"
-                              value={replyDrafts[q.id] ?? ""}
-                              onChange={(e) =>
-                                setReplyDrafts((d) => ({
-                                  ...d,
-                                  [q.id]: e.target.value,
-                                }))
-                              }
-                            />
-                            <Button
-                              size="sm"
-                              className="mt-1 bg-amber-200 text-black"
-                              disabled={!(replyDrafts[q.id] || "").trim()}
-                              onClick={() => postReply(q.id)}
-                            >
-                              Post reply
-                            </Button>
+                            {/* replies */}
+                            <div className="mt-3 space-y-2">
+                              {q.replies?.map((r: any) => (
+                                <div
+                                  key={r.id}
+                                  className="bg-white rounded px-3 py-2 text-sm flex justify-between items-center"
+                                >
+                                  <div>
+                                    <strong className="mr-2">
+                                      {r.user?.full_name ?? "anon"}
+                                    </strong>
+                                    <div className="mt-1">{r.text}</div>
+                                  </div>
+                                  {r.user?.id === currentUser?.id && (
+                                    <Button
+                                      size="icon"
+                                      variant="outline"
+                                      className="text-red-600 hover:text-red-700 ml-2"
+                                      onClick={() => deleteReply(r.id)}
+                                    >
+                                      🗑️
+                                    </Button>
+                                  )}
+                                </div>
+                              ))}
+
+                              {/* reply composer */}
+                              <textarea
+                                rows={2}
+                                className="w-full bg-white border rounded p-2 text-sm"
+                                placeholder="Write a reply…"
+                                value={replyDrafts[q.id] ?? ""}
+                                onChange={(e) =>
+                                  setReplyDrafts((d) => ({
+                                    ...d,
+                                    [q.id]: e.target.value,
+                                  }))
+                                }
+                              />
+                              <Button
+                                size="sm"
+                                className="mt-1 bg-amber-200 text-black"
+                                disabled={!(replyDrafts[q.id] || "").trim()}
+                                onClick={() => postReply(q.id)}
+                              >
+                                Post reply
+                              </Button>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
+
+                    {/* ─── Right column: Community Norms ─── */}
+                    <aside className="w-full md:w-1/4 p-4 bg-gray-50 rounded border border-gray-200">
+                      <h2 className="text-lg font-semibold mb-2">
+                        Community norms:
+                      </h2>
+                      <ol className="list-decimal list-inside space-y-1 text-sm">
+                        <li>Keep posts relevant to travel.</li>
+                        <li>
+                          Keep posts appropriate. No hate speech will be
+                          tolerated.
+                        </li>
+                        <li>
+                          Be kind to one another! We’re all looking for new
+                          destinations and fun places to visit. Keep
+                          conversation civil and strictly about travel.
+                        </li>
+                        <li>
+                          Rule violators will be warned ONCE, then banned. If
+                          you come across a post that violates any rules, please
+                          reach out to the mods (the team) to handle.
+                        </li>
+                        <li>Disagree civilly.</li>
+                      </ol>
+                    </aside>
                   </div>
                 </TabsContent>
               </Tabs>
