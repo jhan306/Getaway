@@ -14,7 +14,10 @@ type TripRecord = {
   name: string;
   country_id: string;
   flag: string;
-  // ... any other fields you need
+  itinerary_json: {
+    available: any[];
+    scheduled: Record<string, any>;
+  } | null;
 };
 
 export default function ItineraryPage() {
@@ -48,7 +51,7 @@ export default function ItineraryPage() {
 
       const { data, error } = await supabase
         .from("trips")
-        .select("id, name, country_id, flag")
+        .select("id, name, country_id, flag, itinerary_json")
         .eq("id", tripIdParam)
         .single();
 
@@ -110,6 +113,7 @@ export default function ItineraryPage() {
             countryId={tripData.country_id}
             initialName={tripData.name}
             initialTripId={tripData.id}
+            initialItineraryJSON={tripData.itinerary_json}
           />
         </div>
       </main>
