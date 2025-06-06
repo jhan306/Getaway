@@ -562,6 +562,7 @@ export default function ItineraryPlanner({
                             key={timeIndex}
                             droppableId={`calendar|${dateStr}|${time}`}
                             isDropDisabled={Boolean(scheduledActivity)}
+                            isCombineEnabled={false}
                           >
                             {(provided, snapshot) => (
                               <div
@@ -668,7 +669,11 @@ export default function ItineraryPlanner({
               </Button>
             </div>
 
-            <Droppable droppableId="activities" isDropDisabled={false}>
+            <Droppable
+              droppableId="activities"
+              isDropDisabled={false}
+              isCombineEnabled={false}
+            >
               {(provided, snapshot) => (
                 <div
                   {...provided.droppableProps}
