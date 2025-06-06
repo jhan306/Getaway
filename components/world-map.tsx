@@ -23,7 +23,7 @@ const geoUrl = "https://unpkg.com/world-atlas@2.0.2/countries-110m.json"
 const colorScale = scaleLinear().domain([1, 10]).clamp(true).range([0, 1])
 
 const getFillColor = (value?: number) => {
-  if (!value || value < 1) return "#e5e5e5" // neutral gray for empty
+  if (!value || value < 1) return "#e5e5e5"
   return interpolateSinebow(colorScale(value))
 }
 
@@ -113,3 +113,67 @@ export default function WorldMap() {
                             hover: {
                               fill: "#F53",
                               stroke: "#FFFFFF",
+                              strokeWidth: 0.5,
+                              cursor: "pointer",
+                            },
+                            pressed: {
+                              fill: "#E42",
+                              outline: "none",
+                            },
+                          }}
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent className="text-white !important">{tooltipContent}</TooltipContent>
+                    </Tooltip>
+                  )
+                })
+              }
+            </Geographies>
+
+            {Object.entries(countryData).map(([code, country]) => (
+              <Marker key={`dot-${code}`} coordinates={country.coordinates}>
+                <circle
+                  r={3}
+                  fill="#e74c3c"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => {
+                    if (country.destinationId) {
+                      router.push(`/country/${country.destinationId}`)
+                    } else if (!activeCountries.includes(code)) {
+                      setActiveCountries((prev) => [...prev, code])
+                    } else {
+                      setActiveCountries((prev) => prev.filter((c) => c !== code))
+                    }
+                  }}
+                />
+              </Marker>
+            ))}
+          </ZoomableGroup>
+        </ComposableMap>
+      </TooltipProvider>
+
+      {/* Gradient Legend */}
+      <div className="absolute bottom-4 left-4 bg-white p-3 rounded shadow-md text-sm w-[220px]">
+        <div className="mb-1 font-bold">Expertise</div>
+        <svg width="200" height="10">
+          <defs>
+            <linearGradient id="log-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((val, i) => (
+                <stop
+                  key={val}
+                  offset={`${(i / 9) * 100}%`}
+                  stopColor={interpolateSinebow(colorScale(val))}
+                />
+              ))}
+            </linearGradient>
+          </defs>
+          <rect width="200" height="10" fill="url(#log-gradient)" />
+        </svg>
+        <div className="flex justify-between mt-1">
+          <span>Low</span>
+          <span>High</span>
+        </div>
+      </div>
+    </div>
+  )
+}
