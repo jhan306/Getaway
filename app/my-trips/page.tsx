@@ -43,6 +43,8 @@ export default function MyTripsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [showPlanner, setShowPlanner] = useState(false);
+
+  // 1a) Keep track of the name the user enters for a blank trip
   const [newTripName, setNewTripName] = useState<string>("");
 
   async function fetchMyTrips() {
@@ -77,9 +79,7 @@ export default function MyTripsPage() {
     fetchMyTrips();
   }, [user]);
 
-
   const togglePublic = async (tripId: string, currentStatus: boolean) => {
-    // 5) Create Supabase client via the new helper:
     const supabase: SupabaseClient<any> = createPagesBrowserClient();
 
     const { error } = await supabase
@@ -88,7 +88,6 @@ export default function MyTripsPage() {
       .eq("id", tripId);
 
     if (!error) {
-      // Update local state to reflect new is_public value:
       setTrips((prev) =>
         prev.map((trip) =>
           trip.id === tripId ? { ...trip, is_public: !currentStatus } : trip
@@ -107,7 +106,6 @@ export default function MyTripsPage() {
   const deleteTrip = async (tripId: string) => {
     if (!confirm("Are you sure you want to delete this trip?")) return;
 
-    // 6) Again, call the new helper here:
     const supabase: SupabaseClient<any> = createPagesBrowserClient();
 
     const { error } = await supabase.from("trips").delete().eq("id", tripId);
@@ -121,7 +119,7 @@ export default function MyTripsPage() {
     }
   };
 
-  // 4) “Add Sample Trip” handler: insert a Greece trip directly into Supabase + local state
+  // 4) “Add Sample Trip” handler: insert a generic sample trip into Supabase + local state
   const handleAddSampleTrip = async () => {
     if (!user) {
       toast({
@@ -133,14 +131,13 @@ export default function MyTripsPage() {
     }
 
     const supabase: SupabaseClient<any> = createPagesBrowserClient();
-    // Insert a “Sample Greece Trip” into Supabase with is_public = false
     const { data: inserted, error } = await supabase
       .from("trips")
       .insert([
         {
-          name: "Sample Greece Trip",
-          country_id: "greece",
-          flag: "🇬🇷",
+          name: "Sample Trip",
+          country_id: "",
+          flag: "🗺️",
           is_public: false,
           user_id: user.id,
         },
@@ -168,13 +165,14 @@ export default function MyTripsPage() {
       return;
     }
 
-    // Prepend into local state so the card shows up immediately
     setTrips((prev) => [inserted, ...prev]);
     toast({
-      title: "Sample Greece Trip added",
+      title: "Sample Trip added",
       description: "A sample trip has been inserted for you to explore.",
     });
   };
+
+  // 5) “Create Blank Trip” handler: prompt for a name, store it, then open planner
   const handleCreateBlankTrip = () => {
     const name = prompt("Enter a name for your new trip:")?.trim();
     if (!name) return;
@@ -201,6 +199,7 @@ export default function MyTripsPage() {
       <Header />
 
       <main className="flex-1 container px-4 py-8">
+        {/* Header with “Add Sample Trip” and “Create Your First Trip” */}
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold mb-2">My Trips</h1>
@@ -209,19 +208,17 @@ export default function MyTripsPage() {
             </p>
           </div>
           <div className="flex gap-2">
-           <Button size="sm" variant="outline" onClick={handleAddSampleTrip}>
-             Add Sample Trip
-           </Button>
-        
-           {/* Create Your First Trip → opens a blank planner */}
-           <Button onClick={() => setShowPlanner(true)} size="sm">
-           <Button onClick={handleCreateBlankTrip} size="sm">
-             <Plus className="h-4 w-4 mr-2" />
-             Create Your First Trip!
-           </Button>
-         </div>
+            <Button size="sm" variant="outline" onClick={handleAddSampleTrip}>
+              Add Sample Trip
+            </Button>
+            <Button onClick={handleCreateBlankTrip} size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              Create Your First Trip
+            </Button>
+          </div>
         </div>
 
+        {/* Grid of existing trip cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {trips.map((trip) => (
             <Card key={trip.id} className="hover:shadow-lg transition-shadow">
@@ -296,7 +293,7 @@ export default function MyTripsPage() {
           ))}
         </div>
 
-        {/* 1) Only show “No trips yet” when there are zero trips AND the planner is not open */}
+        {/* “No trips yet” placeholder */}
         {trips.length === 0 && !showPlanner && (
           <div className="text-center py-12">
             <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -304,17 +301,16 @@ export default function MyTripsPage() {
             <p className="text-gray-600 mb-4">
               Start planning your first adventure!
             </p>
-            <Button onClick={() => setShowPlanner(true)}>
+            <Button onClick={handleCreateBlankTrip}>
               <Plus className="h-4 w-4 mr-2" />
-              Create a Trip!
+              Create a trip!
             </Button>
           </div>
         )}
-        
-        {/* 2) Render the planner whenever showPlanner is true (regardless of trips.length) */}
+
+        {/* Render the planner in blank mode (with initialName) */}
         {showPlanner && (
           <div className="mt-8">
-            <ItineraryPlanner  countryId=""/>
             <ItineraryPlanner countryId="" initialName={newTripName} />
           </div>
         )}
