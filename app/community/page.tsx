@@ -1,79 +1,85 @@
 // app/community/page.tsx
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { MapPin, Users, Calendar, Eye } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import Header from "@/components/header"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { MapPin, Users, Calendar, Eye } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Header from "@/components/header";
 
 // 1) Remove your old createClient import.
 // import { createClient } from "@/lib/supabase/client"
 
-// 2) Import the official Next.js “Pages” helper instead:
-import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs"
-import type { SupabaseClient } from "@supabase/auth-helpers-nextjs"
+// 2) Import the official Next.js "Pages" helper instead:
+import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs";
+import type { SupabaseClient } from "@supabase/auth-helpers-nextjs";
 
 type PublicTrip = {
-  id: string
-  name: string
-  country_id: string
-  flag: string
-  created_at: string
+  id: string;
+  name: string;
+  country_id: string;
+  flag: string;
+  created_at: string;
   user: {
-    full_name: string | null
-    email: string
-  }
+    full_name: string | null;
+    email: string;
+  };
   _count: {
-    activities: number
-  }
-}
+    activities: number;
+  };
+};
 
 export default function CommunityPage() {
-  const [trips, setTrips] = useState<PublicTrip[]>([])
-  const [loading, setLoading] = useState(true)
+  const [trips, setTrips] = useState<PublicTrip[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // 3) Instantiate the Supabase client on the browser:
-    const supabase: SupabaseClient<any> = createPagesBrowserClient()
+    const supabase: SupabaseClient<any> = createPagesBrowserClient();
 
     async function fetchPublicTrips() {
-      // 4) Query “trips” exactly as before:
+      // 4) Query "trips" exactly as before:
       const { data, error } = await supabase
         .from("trips")
-        .select(`
+        .select(
+          `
           id,
           name,
           country_id,
           flag,
           created_at,
-          activities(count)
-        `)
+          activities(count),
+          user:user_id (
+            full_name,
+            email
+          )
+        `
+        )
         .eq("is_public", true)
         .order("created_at", { ascending: false })
-        .limit(12)
+        .limit(12);
 
       if (!error && data) {
-        // 5) Mock user data (since we haven’t joined with profiles yet):
+        // Use the actual user data from the join
         const tripsWithUsers = data.map((trip) => ({
           ...trip,
           user: {
-            full_name: "Travel Enthusiast",
-            email: "user@example.com",
+            full_name: trip.user?.full_name || "Anonymous",
+            email: trip.user?.email || "",
           },
           _count: {
-            activities: Math.floor(Math.random() * 10) + 1,
+            activities: trip.activities?.[0]?.count || 0,
           },
-        }))
-        setTrips(tripsWithUsers)
+        }));
+        setTrips(tripsWithUsers);
       }
 
-      setLoading(false)
+      setLoading(false);
     }
 
-    fetchPublicTrips()
-  }, [])
+    fetchPublicTrips();
+  }, []);
 
   if (loading) {
     return (
@@ -86,7 +92,7 @@ export default function CommunityPage() {
           </div>
         </main>
       </div>
-    )
+    );
   }
 
   return (
@@ -96,7 +102,9 @@ export default function CommunityPage() {
       <main className="flex-1 container px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Community Trips</h1>
-          <p className="text-gray-600">Discover amazing trips planned by fellow travelers around the world</p>
+          <p className="text-gray-600">
+            Discover amazing trips planned by fellow travelers around the world
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -109,7 +117,9 @@ export default function CommunityPage() {
                     <CardTitle className="text-lg">{trip.name}</CardTitle>
                   </div>
                 </div>
-                <p className="text-sm text-gray-600">by {trip.user.full_name || "Anonymous"}</p>
+                <p className="text-sm text-gray-600">
+                  by {trip.user.full_name || "Anonymous"}
+                </p>
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="space-y-3">
@@ -120,7 +130,9 @@ export default function CommunityPage() {
                     </div>
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
-                      <span>{new Date(trip.created_at).toLocaleDateString()}</span>
+                      <span>
+                        {new Date(trip.created_at).toLocaleDateString()}
+                      </span>
                     </div>
                   </div>
 
@@ -132,7 +144,9 @@ export default function CommunityPage() {
                       </Link>
                     </Button>
                     <Button asChild variant="outline" size="sm">
-                      <Link href={`/itinerary?destination=${trip.country_id}`}>Plan Similar</Link>
+                      <Link href={`/itinerary?destination=${trip.country_id}`}>
+                        Plan Similar
+                      </Link>
                     </Button>
                   </div>
                 </div>
@@ -145,7 +159,9 @@ export default function CommunityPage() {
           <div className="text-center py-12">
             <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium mb-2">No public trips yet</h3>
-            <p className="text-gray-600 mb-4">Be the first to share your travel plans with the community!</p>
+            <p className="text-gray-600 mb-4">
+              Be the first to share your travel plans with the community!
+            </p>
             <Button asChild>
               <Link href="/itinerary">Create Your First Trip</Link>
             </Button>
@@ -157,10 +173,12 @@ export default function CommunityPage() {
         <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row px-4 md:px-6">
           <div className="flex items-center gap-2">
             <span className="text-6xl">🌍</span>
-            <p className="text-sm text-muted-foreground">© 2024 Getaway. All rights reserved.</p>
+            <p className="text-sm text-muted-foreground">
+              © 2024 Getaway. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>
     </div>
-  )
+  );
 }
