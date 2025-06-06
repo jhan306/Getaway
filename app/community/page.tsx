@@ -72,7 +72,7 @@ export default function CommunityPage() {
             email: trip.user?.email ?? "",
           },
           _count: {
-            activities: trip.activities?.[0]?.count ?? 0,
+            activities: activityCount,
           },
         }));
         setTrips(shaped);
