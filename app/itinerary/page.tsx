@@ -70,7 +70,7 @@ export default function ItineraryPage() {
     }
 
     fetchTrip();
-  }, [tripIdParam, toast]);
+  }, [tripIdParam]);
 
   // 4) While loading (or if no tripIdParam), show a spinner
   if (loading || !tripIdParam) {
