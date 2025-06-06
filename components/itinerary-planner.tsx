@@ -755,7 +755,16 @@ export default function ItineraryPlanner({
               onChange={(e) => setNewDuration(e.target.value)}
               className="w-full border rounded p-2 text-sm"
             >
-              {["1 hour", "2 hours", "3 hours", "4 hours"].map((opt) => (
+              {[
+                "1 hour",
+                "2 hours",
+                "3 hours",
+                "4 hours",
+                "5 hours",
+                "6 hours",
+                "7 hours",
+                "8 hours",
+              ].map((opt) => (
                 <option key={opt} value={opt}>
                   {opt}
                 </option>
