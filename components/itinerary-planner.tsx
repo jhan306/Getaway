@@ -49,7 +49,6 @@ type TripState = {
 
 // ─── DEFAULT ACTIVITIES FOR KNOWN COUNTRIES ─────────────────────────────────
 const activitiesByCountry: Record<string, Activity[]> = {
-  // You can seed this with actual default lists if you want. For now:
   greece: [
     {
       id: "activity-1",
@@ -107,82 +106,52 @@ export default function ItineraryPlanner({
   countryId = "",
   initialName,
   initialTripId,
+  initialItineraryJSON,
 }: {
   countryId?: string;
   initialName?: string;
   initialTripId: string;
+  initialItineraryJSON: { available: Activity[]; scheduled: ScheduledMap } | null;
 }) {
   const { toast } = useToast();
   const [loading, setLoading] = useState<boolean>(true);
   const [tripState, setTripState] = useState<TripState | null>(null);
 
   // ────────────────────────────────────────────────────────────────────────────
-  // 1) ON MOUNT: load itinerary_json from Supabase (or build fallback)
+  // 1) ON MOUNT: initialize from initialItineraryJSON instead of fetching
   // ────────────────────────────────────────────────────────────────────────────
   useEffect(() => {
-    console.log("ItineraryPlanner.loadTripFromDB()", { initialTripId, timestamp: new Date().toISOString() });
-  
-    async function loadTripFromDB() {
-      if (!initialTripId) {
-        setLoading(false);
-        return;
-      }
-  
-      setLoading(true);
-      const supabase: SupabaseClient<any> = createPagesBrowserClient();
-  
-      const { data, error } = await supabase
-        .from("trips")
-        .select("id, name, country_id, flag, itinerary_json")
-        .eq("id", initialTripId)
-        .single();
-  
-      if (error || !data) {
-        // Fallback if the fetch fails:
-        console.error("Failed to load trip:", error);
-        const fallbackName = initialName?.trim() || "Untitled";
-        const fallbackFlag = tripFlag(countryId || "");
-        setTripState({
-          id: initialTripId,
-          name: fallbackName,
-          flag: fallbackFlag,
-          available: activitiesByCountry[countryId] || [],
-          scheduled: {},
-        });
-        setLoading(false);
-        return;
-      }
-  
-      // We got valid data back from Supabase
-      const saved = data.itinerary_json as any;
-      if (
-        saved &&
-        Array.isArray(saved.available) &&
-        typeof saved.scheduled === "object"
-      ) {
-        setTripState({
-          id: data.id,
-          name: data.name,
-          flag: data.flag,
-          available: saved.available,
-          scheduled: saved.scheduled,
-        });
-      } else {
-        // First‐time load (no JSON saved yet):
-        setTripState({
-          id: data.id,
-          name: data.name,
-          flag: data.flag,
-          available: activitiesByCountry[data.country_id] || [],
-          scheduled: {},
-        });
-      }
-  
+    if (!initialTripId) {
       setLoading(false);
+      return;
     }
-  
-    loadTripFromDB();
-  }, [initialTripId])
+
+    if (
+      initialItineraryJSON &&
+      Array.isArray(initialItineraryJSON.available) &&
+      typeof initialItineraryJSON.scheduled === "object"
+    ) {
+      // Use the saved itinerary JSON from props
+      setTripState({
+        id: initialTripId,
+        name: initialName ?? "",
+        flag: tripFlag(countryId || ""),
+        available: initialItineraryJSON.available,
+        scheduled: initialItineraryJSON.scheduled,
+      });
+    } else {
+      // No saved JSON → brand‐new trip
+      setTripState({
+        id: initialTripId,
+        name: initialName ?? "",
+        flag: tripFlag(countryId || ""),
+        available: activitiesByCountry[countryId || ""] || [],
+        scheduled: {},
+      });
+    }
+
+    setLoading(false);
+  }, [initialTripId, countryId, initialName, initialItineraryJSON]);
 
   // ────────────────────────────────────────────────────────────────────────────
   // 2) saveItinerary(): updates React state & persists to Supabase
@@ -222,7 +191,9 @@ export default function ItineraryPlanner({
     }
   }
 
+  // ────────────────────────────────────────────────────────────────────────────
   // While loading (or no tripState yet), show a spinner
+  // ────────────────────────────────────────────────────────────────────────────
   if (loading || !tripState) {
     return (
       <div className="min-h-[200px] flex items-center justify-center">
@@ -233,6 +204,7 @@ export default function ItineraryPlanner({
 
   // ────────────────────────────────────────────────────────────────────────────
   // Aliases for “available” & “scheduled”
+  // ────────────────────────────────────────────────────────────────────────────
   const availableActivities = tripState.available;
   const scheduledActivities = tripState.scheduled;
 
@@ -263,10 +235,8 @@ export default function ItineraryPlanner({
     };
 
     const newAvailList = [...availableActivities, newActivity];
-    // 2) Persist & update local state
     await saveItinerary(newAvailList, scheduledActivities);
 
-    // Reset modal fields + close
     setNewTitle("");
     setNewLocation("");
     setNewDuration("1 hour");
@@ -275,12 +245,14 @@ export default function ItineraryPlanner({
     setAddOpen(false);
   };
 
+  // ────────────────────────────────────────────────────────────────────────────
   // Whenever countryId changes, if the tripState has no “available” (empty),
   // re-initialize from activitiesByCountry and clear scheduled.
+  // ────────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!tripState) return;
     if (tripState.available.length === 0) {
-      const freshAvail = activitiesByCountry[countryId] || [];
+      const freshAvail = activitiesByCountry[countryId || ""] || [];
       saveItinerary(freshAvail, {});
     }
   }, [countryId]);
@@ -439,7 +411,7 @@ export default function ItineraryPlanner({
   // Reset itinerary: put default country activities back
   // ────────────────────────────────────────────────────────────────────────────
   const resetItinerary = async () => {
-    const freshAvail = activitiesByCountry[countryId] || [];
+    const freshAvail = activitiesByCountry[countryId || ""] || [];
     await saveItinerary(freshAvail, {});
     toast({
       title: "Itinerary reset",
@@ -751,7 +723,7 @@ export default function ItineraryPlanner({
               onChange={(e) => setNewDuration(e.target.value)}
               className="w-full border rounded p-2 text-sm"
             >
-              {durationOptions.map((opt) => (
+              {timeSlots.map((opt) => (
                 <option key={opt} value={opt}>
                   {opt}
                 </option>
