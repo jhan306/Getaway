@@ -270,7 +270,7 @@ export default function MyTripsPage() {
             {/* Create Your First Trip: prompts for name, inserts a blank trip row */}
             <Button onClick={handleCreateBlankTrip} size="sm">
               <Plus className="h-4 w-4 mr-2" />
-              Create Your First Trip
+              Add a new trip!
             </Button>
           </div>
         </div>
