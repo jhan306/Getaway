@@ -1,8 +1,8 @@
 // app/my-trips/page.tsx
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
+import { useState, useEffect } from "react"
+import Link from "next/link"
 import {
   Plus,
   MapPin,
@@ -11,51 +11,48 @@ import {
   Trash2,
   Eye,
   EyeOff,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Header from "@/components/header";
-import { useAuth } from "@/contexts/auth-context";
-import { useToast } from "@/hooks/use-toast";
-import ItineraryPlanner from "@/components/itinerary-planner";
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import Header from "@/components/header"
+import { useAuth } from "@/contexts/auth-context"
+import { useToast } from "@/hooks/use-toast"
 
 // 1) Remove your old createClient import:
 // import { createClient } from "@/lib/supabase/client"
 
-// 2) Add the official Next.js "Pages" helper for Supabase:
-import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs";
-import type { SupabaseClient } from "@supabase/auth-helpers-nextjs";
+// 2) Add the official Next.js “Pages” helper for Supabase:
+import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs"
+import type { SupabaseClient } from "@supabase/auth-helpers-nextjs"
 
 type Trip = {
-  id: string;
-  name: string;
-  country_id: string;
-  flag: string;
-  is_public: boolean;
-  created_at: string;
-  updated_at: string;
-  activities: { count: number }[];
-};
+  id: string
+  name: string
+  country_id: string
+  flag: string
+  is_public: boolean
+  created_at: string
+  updated_at: string
+  activities: { count: number }[]
+}
 
 export default function MyTripsPage() {
-  const [trips, setTrips] = useState<Trip[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const [showPlanner, setShowPlanner] = useState(false);
+  const [trips, setTrips] = useState<Trip[]>([])
+  const [loading, setLoading] = useState(true)
+  const { user } = useAuth()
+  const { toast } = useToast()
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) return
 
     async function fetchMyTrips() {
       // 3) Instantiate Supabase client using the new helper:
-      const supabase: SupabaseClient<any> = createPagesBrowserClient();
+      const supabase: SupabaseClient<any> = createPagesBrowserClient()
 
-      // 4) Exactly the same "select" call you had before:
+      // 4) Exactly the same “select” call you had before:
       const { data, error } = await supabase
         .from("trips")
-        .select(
-          `
+        .select(`
           id,
           name,
           country_id,
@@ -64,29 +61,28 @@ export default function MyTripsPage() {
           created_at,
           updated_at,
           activities(count)
-        `
-        )
+        `)
         .eq("user_id", user.id)
-        .order("updated_at", { ascending: false });
+        .order("updated_at", { ascending: false })
 
       if (!error && data) {
-        setTrips(data);
+        setTrips(data)
       }
 
-      setLoading(false);
+      setLoading(false)
     }
 
-    fetchMyTrips();
-  }, [user]);
+    fetchMyTrips()
+  }, [user])
 
   const togglePublic = async (tripId: string, currentStatus: boolean) => {
     // 5) Create Supabase client via the new helper:
-    const supabase: SupabaseClient<any> = createPagesBrowserClient();
+    const supabase: SupabaseClient<any> = createPagesBrowserClient()
 
     const { error } = await supabase
       .from("trips")
       .update({ is_public: !currentStatus })
-      .eq("id", tripId);
+      .eq("id", tripId)
 
     if (!error) {
       // Update local state to reflect new is_public value:
@@ -94,33 +90,33 @@ export default function MyTripsPage() {
         prev.map((trip) =>
           trip.id === tripId ? { ...trip, is_public: !currentStatus } : trip
         )
-      );
+      )
 
       toast({
         title: !currentStatus ? "Trip made public" : "Trip made private",
         description: !currentStatus
           ? "Your trip is now visible to the community"
           : "Your trip is now private",
-      });
+      })
     }
-  };
+  }
 
   const deleteTrip = async (tripId: string) => {
-    if (!confirm("Are you sure you want to delete this trip?")) return;
+    if (!confirm("Are you sure you want to delete this trip?")) return
 
     // 6) Again, call the new helper here:
-    const supabase: SupabaseClient<any> = createPagesBrowserClient();
+    const supabase: SupabaseClient<any> = createPagesBrowserClient()
 
-    const { error } = await supabase.from("trips").delete().eq("id", tripId);
+    const { error } = await supabase.from("trips").delete().eq("id", tripId)
 
     if (!error) {
-      setTrips((prev) => prev.filter((trip) => trip.id !== tripId));
+      setTrips((prev) => prev.filter((trip) => trip.id !== tripId))
       toast({
         title: "Trip deleted",
         description: "Your trip has been permanently deleted",
-      });
+      })
     }
-  };
+  }
 
   if (loading) {
     return (
@@ -133,7 +129,7 @@ export default function MyTripsPage() {
           </div>
         </main>
       </div>
-    );
+    )
   }
 
   return (
@@ -144,15 +140,13 @@ export default function MyTripsPage() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold mb-2">My Trips</h1>
-            <p className="text-gray-600">
-              Manage your travel plans and itineraries
-            </p>
+            <p className="text-gray-600">Manage your travel plans and itineraries</p>
           </div>
           <Button asChild>
-            <button onClick={() => setShowPlanner(true)}>
+            <Link href="/itinerary">
               <Plus className="h-4 w-4 mr-2" />
               New Trip
-            </button>
+            </Link>
           </Button>
         </div>
 
@@ -169,10 +163,7 @@ export default function MyTripsPage() {
                     {trip.is_public ? (
                       <Eye className="h-4 w-4 text-green-600" title="Public" />
                     ) : (
-                      <EyeOff
-                        className="h-4 w-4 text-gray-400"
-                        title="Private"
-                      />
+                      <EyeOff className="h-4 w-4 text-gray-400" title="Private" />
                     )}
                   </div>
                 </div>
@@ -186,9 +177,7 @@ export default function MyTripsPage() {
                     </div>
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
-                      <span>
-                        {new Date(trip.updated_at).toLocaleDateString()}
-                      </span>
+                      <span>{new Date(trip.updated_at).toLocaleDateString()}</span>
                     </div>
                   </div>
 
@@ -230,22 +219,17 @@ export default function MyTripsPage() {
           ))}
         </div>
 
-        {trips.length === 0 && !showPlanner && (
+        {trips.length === 0 && (
           <div className="text-center py-12">
             <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium mb-2">No trips yet</h3>
-            <p className="text-gray-600 mb-4">
-              Start planning your first adventure!
-            </p>
-            <Button onClick={() => setShowPlanner(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Your First Trip
+            <p className="text-gray-600 mb-4">Start planning your first adventure!</p>
+            <Button asChild>
+              <Link href="/itinerary">
+                <Plus className="h-4 w-4 mr-2" />
+                Create Your First Trip
+              </Link>
             </Button>
-          </div>
-        )}
-        {showPlanner && (
-          <div className="mt-8">
-            <ItineraryPlanner />
           </div>
         )}
       </main>
@@ -254,12 +238,10 @@ export default function MyTripsPage() {
         <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row px-4 md:px-6">
           <div className="flex items-center gap-2">
             <span className="text-6xl">🌍</span>
-            <p className="text-sm text-muted-foreground">
-              © 2024 Getaway. All rights reserved.
-            </p>
+            <p className="text-sm text-muted-foreground">© 2024 Getaway. All rights reserved.</p>
           </div>
         </div>
       </footer>
     </div>
-  );
+  )
 }
