@@ -361,7 +361,7 @@ function tripFlag(id: string) {
 }
 
 export default function ItineraryPlanner({
-  countryId = "greece",
+  countryId,
   initialName,
 }: {
   countryId?: string;
