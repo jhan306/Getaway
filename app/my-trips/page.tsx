@@ -201,12 +201,17 @@ export default function MyTripsPage() {
               Manage your travel plans and itineraries
             </p>
           </div>
-          <Button asChild>
-            <button onClick={() => setShowPlanner(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              New Trip
-            </button>
-          </Button>
+          <div className="flex gap-2">
+           <Button size="sm" variant="outline" onClick={handleAddSampleTrip}>
+             Add Sample Trip
+           </Button>
+        
+           {/* Create Your First Trip → opens a blank planner */}
+           <Button onClick={() => setShowPlanner(true)} size="sm">
+             <Plus className="h-4 w-4 mr-2" />
+             Create Your First Trip
+           </Button>
+         </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -301,7 +306,7 @@ export default function MyTripsPage() {
         {/* 2) Render the planner whenever showPlanner is true (regardless of trips.length) */}
         {showPlanner && (
           <div className="mt-8">
-            <ItineraryPlanner />
+            <ItineraryPlanner  countryId=""/>
           </div>
         )}
       </main>
