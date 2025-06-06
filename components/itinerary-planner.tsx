@@ -14,14 +14,14 @@ import type { SupabaseClient } from "@supabase/auth-helpers-nextjs";
 
 // ─── ACTIVITY TYPE DEFINITIONS ────────────────────────────────────────────────
 const activityTypes = {
-  sightseeing:   { name: "Sightseeing",      color: "#4285F4" },
-  food:          { name: "Food & Dining",    color: "#34A853" },
-  tour:          { name: "Tours",            color: "#EA4335" },
-  leisure:       { name: "Leisure",          color: "#FBBC05" },
-  cultural:      { name: "Cultural",         color: "#9C27B0" },
-  outdoor:       { name: "Outdoor",          color: "#009688" },
-  transport:     { name: "Transport",        color: "#607D8B" },
-  accommodation: { name: "Accommodation",    color: "#FF9800" },
+  sightseeing: { name: "Sightseeing", color: "#4285F4" },
+  food: { name: "Food & Dining", color: "#34A853" },
+  tour: { name: "Tours", color: "#EA4335" },
+  leisure: { name: "Leisure", color: "#FBBC05" },
+  cultural: { name: "Cultural", color: "#9C27B0" },
+  outdoor: { name: "Outdoor", color: "#009688" },
+  transport: { name: "Transport", color: "#607D8B" },
+  accommodation: { name: "Accommodation", color: "#FF9800" },
 };
 
 export type Activity = {
@@ -62,16 +62,26 @@ const activitiesByCountry: Record<string, Activity[]> = {
       scenicRating: 5,
       culturalRating: 5,
     },
-    // …etc. you can seed more default activities here…
+    // …etc. seed more activities as needed…
   ],
-  // Add entries for “italy”, “japan”, “france” as needed…
+  // Add “italy”, “japan”, “france” etc. similarly…
 };
 
 // ─── TIME SLOTS FOR THE CALENDAR ───────────────────────────────────────────────
 const timeSlots = [
-  "8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM",
-  "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM",
-  "6:00 PM", "7:00 PM", "8:00 PM",
+  "8:00 AM",
+  "9:00 AM",
+  "10:00 AM",
+  "11:00 AM",
+  "12:00 PM",
+  "1:00 PM",
+  "2:00 PM",
+  "3:00 PM",
+  "4:00 PM",
+  "5:00 PM",
+  "6:00 PM",
+  "7:00 PM",
+  "8:00 PM",
 ];
 
 // ─── HELPER: FORMAT A TIME RANGE GIVEN A START & DURATION ────────────────────
@@ -114,30 +124,31 @@ export default function ItineraryPlanner({
   countryId?: string;
   initialName?: string;
   initialTripId: string;
-  initialItineraryJSON: { available: Activity[]; scheduled: ScheduledMap } | null;
+  initialItineraryJSON: {
+    available: Activity[];
+    scheduled: ScheduledMap;
+  } | null;
 }) {
   const { toast } = useToast();
 
-  // ─── 1) All hooks must be declared unconditionally at the top ─────────────
+  // ─── 1) Declare all hooks at the top, unconditionally ─────────────────────
   const [loading, setLoading] = useState<boolean>(true);
   const [tripState, setTripState] = useState<TripState | null>(null);
 
-  // “Add Activity” modal state
+  // Modal state (Add Activity)
   const [isAddOpen, setAddOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newLocation, setNewLocation] = useState("");
   const [newDuration, setNewDuration] = useState("1 hour");
-  const [newTag, setNewTag] = useState<keyof typeof activityTypes>("sightseeing");
+  const [newTag, setNewTag] =
+    useState<keyof typeof activityTypes>("sightseeing");
   const [newDescription, setNewDescription] = useState("");
 
   // Calendar navigation state
   const [currentDate, setCurrentDate] = useState(new Date());
-
   // ────────────────────────────────────────────────────────────────────────────
 
-  // ────────────────────────────────────────────────────────────────────────────
-  // 2) ON MOUNT: initialize from `initialItineraryJSON` (no internal Supabase fetch)
-  // ────────────────────────────────────────────────────────────────────────────
+  // ─── 2) ON MOUNT: initialize from props (no extra fetch inside this component) ───
   useEffect(() => {
     if (!initialTripId) {
       setLoading(false);
@@ -149,7 +160,6 @@ export default function ItineraryPlanner({
       Array.isArray(initialItineraryJSON.available) &&
       typeof initialItineraryJSON.scheduled === "object"
     ) {
-      // Use the pre‐fetched JSON from props
       setTripState({
         id: initialTripId,
         name: initialName ?? "",
@@ -158,7 +168,7 @@ export default function ItineraryPlanner({
         scheduled: initialItineraryJSON.scheduled,
       });
     } else {
-      // Brand‐new trip (no JSON saved yet)
+      // Brand‐new trip (no saved JSON)
       setTripState({
         id: initialTripId,
         name: initialName ?? "",
@@ -172,9 +182,7 @@ export default function ItineraryPlanner({
   }, [initialTripId, countryId, initialName, initialItineraryJSON]);
   // ────────────────────────────────────────────────────────────────────────────
 
-  // ────────────────────────────────────────────────────────────────────────────
-  // 3) saveItinerary(): updates React state & persists to Supabase
-  // ────────────────────────────────────────────────────────────────────────────
+  // ─── 3) saveItinerary(): updates state & persists to Supabase ─────────────────
   async function saveItinerary(
     newAvailable: Activity[],
     newScheduled: ScheduledMap
@@ -211,9 +219,17 @@ export default function ItineraryPlanner({
   }
   // ────────────────────────────────────────────────────────────────────────────
 
+  // ─── 4) Secondary effect: whenever countryId changes, re‐initialize if “available” is empty ───
+  useEffect(() => {
+    if (!tripState) return;
+    if (tripState.available.length === 0) {
+      const freshAvail = activitiesByCountry[countryId] || [];
+      saveItinerary(freshAvail, {});
+    }
+  }, [countryId, tripState]);
   // ────────────────────────────────────────────────────────────────────────────
-  // 4) Early return while loading or if tripState isn’t ready
-  // ────────────────────────────────────────────────────────────────────────────
+
+  // ─── 5) Early render‐block: show spinner if still loading or no tripState ───────────────
   if (loading || !tripState) {
     return (
       <div className="min-h-[200px] flex items-center justify-center">
@@ -221,15 +237,15 @@ export default function ItineraryPlanner({
       </div>
     );
   }
+  // ────────────────────────────────────────────────────────────────────────────
 
   // ────────────────────────────────────────────────────────────────────────────
-  // Aliases for available & scheduled
+  // Aliases for available/scheduled
   const availableActivities = tripState.available;
   const scheduledActivities = tripState.scheduled;
+  // ────────────────────────────────────────────────────────────────────────────
 
-  // ────────────────────────────────────────────────────────────────────────────
-  // “Add New Activity” handler → add to available + save
-  // ────────────────────────────────────────────────────────────────────────────
+  // ─── 6) “Add New Activity” handler → append to available + save ─────────────────────
   const saveNewActivity = async () => {
     if (!newTitle.trim()) return;
 
@@ -249,7 +265,7 @@ export default function ItineraryPlanner({
     const newAvailList = [...availableActivities, newActivity];
     await saveItinerary(newAvailList, scheduledActivities);
 
-    // Reset modal fields + close
+    // Reset modal fields & close
     setNewTitle("");
     setNewLocation("");
     setNewDuration("1 hour");
@@ -257,22 +273,10 @@ export default function ItineraryPlanner({
     setNewDescription("");
     setAddOpen(false);
   };
-
-  // ────────────────────────────────────────────────────────────────────────────
-  // Whenever countryId changes, if available is empty, initialize from defaults
-  // ────────────────────────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!tripState) return;
-    if (tripState.available.length === 0) {
-      const freshAvail = activitiesByCountry[countryId] || [];
-      saveItinerary(freshAvail, {});
-    }
-  }, [countryId, tripState]);
   // ────────────────────────────────────────────────────────────────────────────
 
   // ────────────────────────────────────────────────────────────────────────────
-  // Helpers: calendarDates, formatDate, parseDuration, areTimeSlotsAvailable
-  // ────────────────────────────────────────────────────────────────────────────
+  // Calendar‐helper functions
   const calendarDates = Array.from({ length: 3 }, (_, i) => {
     const d = new Date(currentDate);
     d.setDate(d.getDate() + i);
@@ -288,9 +292,7 @@ export default function ItineraryPlanner({
 
   const parseDuration = (durationStr: string) => {
     const match = durationStr.match(/(\d+(?:\.\d+)?)/);
-    if (match && match[1]) {
-      return Number.parseInt(match[1], 10);
-    }
+    if (match && match[1]) return parseInt(match[1], 10);
     return 1;
   };
 
@@ -312,8 +314,7 @@ export default function ItineraryPlanner({
   // ────────────────────────────────────────────────────────────────────────────
 
   // ────────────────────────────────────────────────────────────────────────────
-  // Handle drag & drop: remove from available, add to scheduled, then save
-  // ────────────────────────────────────────────────────────────────────────────
+  // Handle drag & drop → schedule an activity & save
   const onDragEnd = async (result: any) => {
     const { destination, draggableId } = result;
     if (!destination || !tripState) return;
@@ -367,8 +368,7 @@ export default function ItineraryPlanner({
   // ────────────────────────────────────────────────────────────────────────────
 
   // ────────────────────────────────────────────────────────────────────────────
-  // Remove a multi-slot activity: return it to available and save
-  // ────────────────────────────────────────────────────────────────────────────
+  // Remove a multi-slot activity: return it to available & save
   const removeActivity = async (dateStr: string, timeSlot: string) => {
     if (!tripState) return;
     const key = `${dateStr}-${timeSlot}`;
@@ -408,8 +408,7 @@ export default function ItineraryPlanner({
   // ────────────────────────────────────────────────────────────────────────────
 
   // ────────────────────────────────────────────────────────────────────────────
-  // Navigate calendar days
-  // ────────────────────────────────────────────────────────────────────────────
+  // Calendar navigation handlers
   const previousDays = () => {
     const d = new Date(currentDate);
     d.setDate(d.getDate() - 3);
@@ -423,8 +422,7 @@ export default function ItineraryPlanner({
   // ────────────────────────────────────────────────────────────────────────────
 
   // ────────────────────────────────────────────────────────────────────────────
-  // Reset itinerary: put default country activities back
-  // ────────────────────────────────────────────────────────────────────────────
+  // Reset itinerary: restore default country activities
   const resetItinerary = async () => {
     const freshAvail = activitiesByCountry[countryId] || [];
     await saveItinerary(freshAvail, {});
@@ -437,7 +435,6 @@ export default function ItineraryPlanner({
 
   // ────────────────────────────────────────────────────────────────────────────
   // FINAL RENDER
-  // ────────────────────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col space-y-6">
       {/* Trip’s flag & name */}
@@ -577,64 +574,65 @@ export default function ItineraryPlanner({
                                 }`}
                                 style={{ overflow: "visible" }}
                               >
-                                {scheduledActivity && scheduledActivity.isStart && (
-                                  <div
-                                    className="absolute left-1 right-1 rounded p-2 text-xs overflow-hidden flex flex-col z-10"
-                                    style={{
-                                      height: `calc(${scheduledActivity.totalSlots} * 4rem - 0.5rem)`,
-                                      top: "0.25rem",
-                                      backgroundColor:
-                                        activityTypes[scheduledActivity.type]
-                                          ?.color || "#4285F4",
-                                      color: "white",
-                                    }}
-                                  >
-                                    <div className="flex justify-between items-start">
-                                      <div className="font-medium text-sm text-black">
-                                        {scheduledActivity.name}
-                                      </div>
-                                      <button
-                                        onClick={() =>
-                                          removeActivity(dateStr, time)
-                                        }
-                                        className="text-white hover:text-gray-200 p-1 rounded-full hover:bg-black/10"
-                                      >
-                                        <X className="h-3 w-3" />
-                                      </button>
-                                    </div>
-                                    {/* Location, time range, type */}
-                                    <div className="mt-1 flex flex-col gap-1">
-                                      <div className="flex items-center gap-1 text-black text-xs">
-                                        <MapPin className="h-3 w-3 text-black" />
-                                        <span>
-                                          {scheduledActivity.location}
-                                        </span>
-                                      </div>
-                                      <div className="flex items-center gap-1 text-black text-xs">
-                                        <Clock className="h-3 w-3 text-black" />
-                                        <span>
-                                          {scheduledActivity.timeRange}
-                                        </span>
-                                      </div>
-                                      <div className="flex items-center gap-1 text-black text-xs">
-                                        <Tag className="h-3 w-3 text-black" />
-                                        <span>
-                                          {
-                                            activityTypes[
-                                              scheduledActivity.type
-                                            ]?.name
+                                {scheduledActivity &&
+                                  scheduledActivity.isStart && (
+                                    <div
+                                      className="absolute left-1 right-1 rounded p-2 text-xs overflow-hidden flex flex-col z-10"
+                                      style={{
+                                        height: `calc(${scheduledActivity.totalSlots} * 4rem - 0.5rem)`,
+                                        top: "0.25rem",
+                                        backgroundColor:
+                                          activityTypes[scheduledActivity.type]
+                                            ?.color || "#4285F4",
+                                        color: "white",
+                                      }}
+                                    >
+                                      <div className="flex justify-between items-start">
+                                        <div className="font-medium text-sm text-black">
+                                          {scheduledActivity.name}
+                                        </div>
+                                        <button
+                                          onClick={() =>
+                                            removeActivity(dateStr, time)
                                           }
-                                        </span>
+                                          className="text-white hover:text-gray-200 p-1 rounded-full hover:bg-black/10"
+                                        >
+                                          <X className="h-3 w-3" />
+                                        </button>
                                       </div>
+                                      {/* Location, time range, type */}
+                                      <div className="mt-1 flex flex-col gap-1">
+                                        <div className="flex items-center gap-1 text-black text-xs">
+                                          <MapPin className="h-3 w-3 text-black" />
+                                          <span>
+                                            {scheduledActivity.location}
+                                          </span>
+                                        </div>
+                                        <div className="flex items-center gap-1 text-black text-xs">
+                                          <Clock className="h-3 w-3 text-black" />
+                                          <span>
+                                            {scheduledActivity.timeRange}
+                                          </span>
+                                        </div>
+                                        <div className="flex items-center gap-1 text-black text-xs">
+                                          <Tag className="h-3 w-3 text-black" />
+                                          <span>
+                                            {
+                                              activityTypes[
+                                                scheduledActivity.type
+                                              ]?.name
+                                            }
+                                          </span>
+                                        </div>
+                                      </div>
+                                      {/* Description if it spans ≥3 slots */}
+                                      {scheduledActivity.totalSlots >= 3 && (
+                                        <div className="mt-2 text-black text-xs line-clamp-2">
+                                          {scheduledActivity.description}
+                                        </div>
+                                      )}
                                     </div>
-                                    {/* Description if it spans ≥3 slots */}
-                                    {scheduledActivity.totalSlots >= 3 && (
-                                      <div className="mt-2 text-black text-xs line-clamp-2">
-                                        {scheduledActivity.description}
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
+                                  )}
                                 {provided.placeholder}
                               </div>
                             )}
@@ -682,7 +680,8 @@ export default function ItineraryPlanner({
                 >
                   {availableActivities.length === 0 ? (
                     <div className="col-span-2 text-center py-8 text-black">
-                      No available activities. Remove from calendar to return here.
+                      No available activities. Remove from calendar to return
+                      here.
                     </div>
                   ) : (
                     availableActivities.map((activity, index) => (
@@ -753,7 +752,9 @@ export default function ItineraryPlanner({
                   key={key}
                   onClick={() => setNewTag(key as keyof typeof activityTypes)}
                   className={`px-3 py-1 rounded text-xs ${
-                    key === newTag ? "bg-amber-200" : "bg-gray-100 hover:bg-gray-200"
+                    key === newTag
+                      ? "bg-amber-200"
+                      : "bg-gray-100 hover:bg-gray-200"
                   }`}
                   style={{ borderColor: color }}
                 >
@@ -771,10 +772,18 @@ export default function ItineraryPlanner({
 
             {/* Dialog actions */}
             <div className="flex justify-end gap-2 pt-2">
-              <Button variant="ghost" size="sm" onClick={() => setAddOpen(false)}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setAddOpen(false)}
+              >
                 Cancel
               </Button>
-              <Button size="sm" onClick={saveNewActivity} disabled={!newTitle.trim()}>
+              <Button
+                size="sm"
+                onClick={saveNewActivity}
+                disabled={!newTitle.trim()}
+              >
                 Save
               </Button>
             </div>
