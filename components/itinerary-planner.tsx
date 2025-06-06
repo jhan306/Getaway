@@ -62,9 +62,9 @@ const activitiesByCountry: Record<string, Activity[]> = {
       scenicRating: 5,
       culturalRating: 5,
     },
-    // …etc. You can keep your full list here…
+    // …etc. you can seed more default activities here…
   ],
-  // Add “italy”, “japan”, “france” as before if desired…
+  // Add entries for “italy”, “japan”, “france” as needed…
 };
 
 // ─── TIME SLOTS FOR THE CALENDAR ───────────────────────────────────────────────
@@ -90,7 +90,10 @@ const formatTimeRange = (startTime: string, durationHours: number) => {
   } else if (startPeriod === "PM" && endHour > 12) {
     endHour -= 12;
   }
-  return `${rawHour}:${rawMin.padEnd(2, "0")}${startPeriod} - ${endHour}:${rawMin.padEnd(2, "0")}${endPeriod}`;
+  return (
+    `${rawHour}:${rawMin.padEnd(2, "0")}${startPeriod} - ` +
+    `${endHour}:${rawMin.padEnd(2, "0")}${endPeriod}`
+  );
 };
 
 // ─── HELPER: MAP A COUNTRY ID → FLAG EMOJI ────────────────────────────────────
@@ -114,11 +117,26 @@ export default function ItineraryPlanner({
   initialItineraryJSON: { available: Activity[]; scheduled: ScheduledMap } | null;
 }) {
   const { toast } = useToast();
+
+  // ─── 1) All hooks must be declared unconditionally at the top ─────────────
   const [loading, setLoading] = useState<boolean>(true);
   const [tripState, setTripState] = useState<TripState | null>(null);
 
+  // “Add Activity” modal state
+  const [isAddOpen, setAddOpen] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newLocation, setNewLocation] = useState("");
+  const [newDuration, setNewDuration] = useState("1 hour");
+  const [newTag, setNewTag] = useState<keyof typeof activityTypes>("sightseeing");
+  const [newDescription, setNewDescription] = useState("");
+
+  // Calendar navigation state
+  const [currentDate, setCurrentDate] = useState(new Date());
+
   // ────────────────────────────────────────────────────────────────────────────
-  // 1) ON MOUNT: initialize from initialItineraryJSON instead of fetching
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // 2) ON MOUNT: initialize from `initialItineraryJSON` (no internal Supabase fetch)
   // ────────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!initialTripId) {
@@ -131,7 +149,7 @@ export default function ItineraryPlanner({
       Array.isArray(initialItineraryJSON.available) &&
       typeof initialItineraryJSON.scheduled === "object"
     ) {
-      // Use the saved itinerary JSON from props
+      // Use the pre‐fetched JSON from props
       setTripState({
         id: initialTripId,
         name: initialName ?? "",
@@ -140,21 +158,22 @@ export default function ItineraryPlanner({
         scheduled: initialItineraryJSON.scheduled,
       });
     } else {
-      // No saved JSON → brand‐new trip
+      // Brand‐new trip (no JSON saved yet)
       setTripState({
         id: initialTripId,
         name: initialName ?? "",
         flag: tripFlag(countryId || ""),
-        available: activitiesByCountry[countryId || ""] || [],
+        available: activitiesByCountry[countryId] || [],
         scheduled: {},
       });
     }
 
     setLoading(false);
   }, [initialTripId, countryId, initialName, initialItineraryJSON]);
+  // ────────────────────────────────────────────────────────────────────────────
 
   // ────────────────────────────────────────────────────────────────────────────
-  // 2) saveItinerary(): updates React state & persists to Supabase
+  // 3) saveItinerary(): updates React state & persists to Supabase
   // ────────────────────────────────────────────────────────────────────────────
   async function saveItinerary(
     newAvailable: Activity[],
@@ -162,14 +181,14 @@ export default function ItineraryPlanner({
   ) {
     if (!tripState) return;
 
-    // 2a) Update local state immediately
+    // 3a) Update local state immediately
     setTripState({
       ...tripState,
       available: newAvailable,
       scheduled: newScheduled,
     });
 
-    // 2b) Persist to Supabase
+    // 3b) Persist to Supabase
     const supabase: SupabaseClient<any> = createPagesBrowserClient();
     const { error } = await supabase
       .from("trips")
@@ -190,9 +209,10 @@ export default function ItineraryPlanner({
       });
     }
   }
+  // ────────────────────────────────────────────────────────────────────────────
 
   // ────────────────────────────────────────────────────────────────────────────
-  // While loading (or no tripState yet), show a spinner
+  // 4) Early return while loading or if tripState isn’t ready
   // ────────────────────────────────────────────────────────────────────────────
   if (loading || !tripState) {
     return (
@@ -203,21 +223,13 @@ export default function ItineraryPlanner({
   }
 
   // ────────────────────────────────────────────────────────────────────────────
-  // Aliases for “available” & “scheduled”
-  // ────────────────────────────────────────────────────────────────────────────
+  // Aliases for available & scheduled
   const availableActivities = tripState.available;
   const scheduledActivities = tripState.scheduled;
 
   // ────────────────────────────────────────────────────────────────────────────
-  // “Add Activity” modal → add to available + save
+  // “Add New Activity” handler → add to available + save
   // ────────────────────────────────────────────────────────────────────────────
-  const [isAddOpen, setAddOpen] = useState(false);
-  const [newTitle, setNewTitle] = useState("");
-  const [newLocation, setNewLocation] = useState("");
-  const [newDuration, setNewDuration] = useState("1 hour");
-  const [newTag, setNewTag] = useState<keyof typeof activityTypes>("sightseeing");
-  const [newDescription, setNewDescription] = useState("");
-
   const saveNewActivity = async () => {
     if (!newTitle.trim()) return;
 
@@ -237,6 +249,7 @@ export default function ItineraryPlanner({
     const newAvailList = [...availableActivities, newActivity];
     await saveItinerary(newAvailList, scheduledActivities);
 
+    // Reset modal fields + close
     setNewTitle("");
     setNewLocation("");
     setNewDuration("1 hour");
@@ -246,22 +259,20 @@ export default function ItineraryPlanner({
   };
 
   // ────────────────────────────────────────────────────────────────────────────
-  // Whenever countryId changes, if the tripState has no “available” (empty),
-  // re-initialize from activitiesByCountry and clear scheduled.
+  // Whenever countryId changes, if available is empty, initialize from defaults
   // ────────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!tripState) return;
     if (tripState.available.length === 0) {
-      const freshAvail = activitiesByCountry[countryId || ""] || [];
+      const freshAvail = activitiesByCountry[countryId] || [];
       saveItinerary(freshAvail, {});
     }
-  }, [countryId]);
+  }, [countryId, tripState]);
+  // ────────────────────────────────────────────────────────────────────────────
 
   // ────────────────────────────────────────────────────────────────────────────
   // Helpers: calendarDates, formatDate, parseDuration, areTimeSlotsAvailable
   // ────────────────────────────────────────────────────────────────────────────
-  const [currentDate, setCurrentDate] = useState(new Date());
-
   const calendarDates = Array.from({ length: 3 }, (_, i) => {
     const d = new Date(currentDate);
     d.setDate(d.getDate() + i);
@@ -298,6 +309,7 @@ export default function ItineraryPlanner({
     }
     return true;
   };
+  // ────────────────────────────────────────────────────────────────────────────
 
   // ────────────────────────────────────────────────────────────────────────────
   // Handle drag & drop: remove from available, add to scheduled, then save
@@ -352,6 +364,7 @@ export default function ItineraryPlanner({
       });
     }
   };
+  // ────────────────────────────────────────────────────────────────────────────
 
   // ────────────────────────────────────────────────────────────────────────────
   // Remove a multi-slot activity: return it to available and save
@@ -392,6 +405,7 @@ export default function ItineraryPlanner({
       description: `${activity.name} removed from itinerary`,
     });
   };
+  // ────────────────────────────────────────────────────────────────────────────
 
   // ────────────────────────────────────────────────────────────────────────────
   // Navigate calendar days
@@ -406,18 +420,20 @@ export default function ItineraryPlanner({
     d.setDate(d.getDate() + 3);
     setCurrentDate(d);
   };
+  // ────────────────────────────────────────────────────────────────────────────
 
   // ────────────────────────────────────────────────────────────────────────────
   // Reset itinerary: put default country activities back
   // ────────────────────────────────────────────────────────────────────────────
   const resetItinerary = async () => {
-    const freshAvail = activitiesByCountry[countryId || ""] || [];
+    const freshAvail = activitiesByCountry[countryId] || [];
     await saveItinerary(freshAvail, {});
     toast({
       title: "Itinerary reset",
       description: "All activities returned to the available list",
     });
   };
+  // ────────────────────────────────────────────────────────────────────────────
 
   // ────────────────────────────────────────────────────────────────────────────
   // FINAL RENDER
@@ -723,7 +739,7 @@ export default function ItineraryPlanner({
               onChange={(e) => setNewDuration(e.target.value)}
               className="w-full border rounded p-2 text-sm"
             >
-              {timeSlots.map((opt) => (
+              {["1 hour", "2 hours", "3 hours", "4 hours"].map((opt) => (
                 <option key={opt} value={opt}>
                   {opt}
                 </option>
