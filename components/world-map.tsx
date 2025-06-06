@@ -37,7 +37,7 @@ const countryData = {
   AUS: { value: 0, coordinates: [133.7751, -25.2744], destinationId: "australia" },
   BRA: { value: 0, coordinates: [-51.9253, -14.235], destinationId: "brazil" },
   IND: { value: 0, coordinates: [78.9629, 20.5937], destinationId: "india" },
-  CHN: { value: 0, coordinates: [104.1954, 35.8617], destinationId: "china" },
+  CHN: { value: 10, coordinates: [104.1954, 35.8617], destinationId: "china" },
   ZAF: { value: 0, coordinates: [22.9375, -30.5595], destinationId: "south_africa" },
   RUS: { value: 0, coordinates: [105.3188, 61.524], destinationId: "russia" },
   MEX: { value: 0, coordinates: [-102.5528, 23.6345], destinationId: "mexico" },
@@ -154,6 +154,29 @@ export default function WorldMap() {
           </ZoomableGroup>
         </ComposableMap>
       </TooltipProvider>
+
+      {/* Gradient Legend */}
+      <div className="absolute bottom-4 left-4 bg-white p-3 rounded shadow-md text-sm w-[220px] z-10">
+        <div className="mb-1 font-medium">Expertise</div>
+        <svg width="200" height="10">
+          <defs>
+            <linearGradient id="log-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((val, i) => (
+                <stop
+                  key={val}
+                  offset={`${(i / 9) * 100}%`}
+                  stopColor={interpolateSinebow(colorScale(val))}
+                />
+              ))}
+            </linearGradient>
+          </defs>
+          <rect width="200" height="10" fill="url(#log-gradient)" />
+        </svg>
+        <div className="flex justify-between mt-1">
+          <span className="text-xs text-gray-600">Low</span>
+          <span className="text-xs text-gray-600">High</span>
+        </div>
+      </div>
     </div>
   )
 }
