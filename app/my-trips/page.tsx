@@ -120,6 +120,61 @@ export default function MyTripsPage() {
     }
   };
 
+  // 4) “Add Sample Trip” handler: insert a Greece trip directly into Supabase + local state
+  const handleAddSampleTrip = async () => {
+    if (!user) {
+      toast({
+        title: "Not signed in",
+        description: "Log in first to add a sample trip.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const supabase: SupabaseClient<any> = createPagesBrowserClient();
+    // Insert a “Sample Greece Trip” into Supabase with is_public = false
+    const { data: inserted, error } = await supabase
+      .from("trips")
+      .insert([
+        {
+          name: "Sample Greece Trip",
+          country_id: "greece",
+          flag: "🇬🇷",
+          is_public: false,
+          user_id: user.id,
+        },
+      ])
+      .select(
+        `
+        id,
+        name,
+        country_id,
+        flag,
+        is_public,
+        created_at,
+        updated_at,
+        activities(count)
+      `
+      )
+      .single();
+
+    if (error || !inserted) {
+      toast({
+        title: "Failed to add sample trip",
+        description: error?.message ?? "Unknown error",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Prepend into local state so the card shows up immediately
+    setTrips((prev) => [inserted, ...prev]);
+    toast({
+      title: "Sample Greece Trip added",
+      description: "A sample trip has been inserted for you to explore.",
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col min-h-screen">
