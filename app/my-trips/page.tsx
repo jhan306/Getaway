@@ -227,6 +227,7 @@ export default function MyTripsPage() {
     // 5d) Store its ID and open the planner on that ID
     setActivePlannerTripId(insertedTrip.id);
     setShowPlanner(true);
+    setPlannerInitialName(insertedTrip.name);
 
     toast({
       title: "Trip created",
