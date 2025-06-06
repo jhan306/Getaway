@@ -23,7 +23,7 @@ type TripRecord = {
 export default function ItineraryPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const toast = useToast();
+  const { toast } = useToast(); // destructure only the toast function
 
   // 1) Read `?trip=...` from the URL
   const tripIdParam = searchParams.get("trip");
@@ -34,12 +34,11 @@ export default function ItineraryPage() {
   // 2) If there is no ?trip=…, show an error and stop loading
   useEffect(() => {
     if (!tripIdParam) {
-      toast.toast({
+      toast({
         title: "No trip ID provided",
         description: "Please open an existing trip from My Trips.",
         variant: "destructive",
       });
-      // We’re done—don’t try to fetch
       setLoading(false);
       return;
     }
@@ -56,7 +55,7 @@ export default function ItineraryPage() {
         .single();
 
       if (error || !data) {
-        toast.toast({
+        toast({
           title: "Failed to load trip",
           description: error?.message ?? "Unknown error",
           variant: "destructive",
@@ -70,7 +69,7 @@ export default function ItineraryPage() {
     }
 
     fetchTrip();
-  }, [tripIdParam]);
+  }, [tripIdParam]); // ← only depend on tripIdParam
 
   // 4) While loading (or if no tripIdParam), show a spinner
   if (loading || !tripIdParam) {
