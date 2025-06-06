@@ -50,10 +50,7 @@ export default function CommunityPage() {
           flag,
           created_at,
           activities(count),
-          user:user_id (
-            full_name,
-            email
-          )
+          user:users_public!user_id ( full_name, email )
         `
         )
         .eq("is_public", true)
