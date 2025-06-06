@@ -23,15 +23,11 @@ const geoUrl = "https://unpkg.com/world-atlas@2.0.2/countries-110m.json"
 const colorScale = scaleLinear().domain([1, 10]).clamp(true).range([0, 1])
 
 const getFillColor = (value?: number) => {
-  if (!value || value < 1) return "#e5e5e5"
+  if (typeof value !== "number" || value <= 0) return "#e5e5e5" // fallback gray
   return interpolateSinebow(colorScale(value))
 }
 
-const countryData: Record<string, {
-  value: number
-  coordinates: [number, number]
-  destinationId: string
-}> = {
+const countryData = {
   USA: { value: 0, coordinates: [-98.5795, 39.8283], destinationId: "united_states" },
   CAN: { value: 4, coordinates: [-106.3468, 56.1304], destinationId: "canada" },
   GBR: { value: 0, coordinates: [-3.436, 55.3781], destinationId: "united_kingdom" },
@@ -84,8 +80,9 @@ export default function WorldMap() {
               {({ geographies }) =>
                 geographies.map((geo) => {
                   const iso = geo.properties.ISO_A3
-                  const data = countryData[iso] ?? { value: 0 }
-                  const isClickable = !!countryData[iso]?.destinationId
+                  const country = countryData[iso]
+                  const value = country?.value ?? 0
+                  const isClickable = !!country?.destinationId
 
                   return (
                     <Tooltip key={geo.rsmKey}>
@@ -94,14 +91,13 @@ export default function WorldMap() {
                           geography={geo}
                           onMouseEnter={() => {
                             const name = geo.properties.NAME
-                            const count = data.value
                             const hint = isClickable ? " (Click to view)" : ""
-                            setTooltipContent(`${name}${hint} — ${count} submissions`)
+                            setTooltipContent(`${name}${hint} — ${value} submissions`)
                           }}
                           onMouseLeave={() => setTooltipContent("")}
                           onClick={() => {
                             if (isClickable) {
-                              router.push(`/country/${countryData[iso].destinationId}`)
+                              router.push(`/country/${country.destinationId}`)
                             } else {
                               setActiveCountries((prev) =>
                                 prev.includes(iso)
@@ -112,7 +108,7 @@ export default function WorldMap() {
                           }}
                           style={{
                             default: {
-                              fill: getFillColor(data.value),
+                              fill: getFillColor(value),
                               stroke: "#FFFFFF",
                               strokeWidth: 0.5,
                             },
