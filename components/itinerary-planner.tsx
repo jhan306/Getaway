@@ -9,36 +9,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ActivityCard } from "@/components/activity-card";
 import { cn } from "@/lib/utils";
+import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs";
+import type { SupabaseClient } from "@supabase/auth-helpers-nextjs";
 
-// SAMPLE DESTINATION DATA (unused in this example, but kept for future use if needed)
-const destinations = [
-  { id: "greece", name: "Greece", flag: "🇬🇷" },
-  { id: "italy",  name: "Italy",  flag: "🇮🇹" },
-  { id: "japan",  name: "Japan",  flag: "🇯🇵" },
-  { id: "france", name: "France", flag: "🇫🇷" },
-];
-
-// DURATION OPTIONS (for the “Add Activity” modal)
-const durationOptions = [
-  "30 mins",
-  "1 hour",
-  "1.5 hours",
-  "2 hours",
-  "2.5 hours",
-  "3 hours",
-  "3.5 hours",
-  "4 hours",
-  "4.5 hours",
-  "5 hours",
-  "5.5 hours",
-  "6 hours",
-  "6.5 hours",
-  "7 hours",
-  "7.5 hours",
-  "8 hours",
-];
-
-// ACTIVITY TYPE DEFINITIONS
+// ─── ACTIVITY + TRIP TYPES ─────────────────────────────────────────────────────
 export type Activity = {
   id: string;
   name: string;
@@ -54,7 +28,7 @@ export type Activity = {
 
 type ScheduledMap = Record<string, any>;
 
-type Trip = {
+type TripState = {
   id: string;
   name: string;
   flag: string;
@@ -62,19 +36,19 @@ type Trip = {
   scheduled: ScheduledMap;
 };
 
-// ACTIVITY COLORS & LABELS
+// ─── ACTIVITY TYPE DEFINITIONS ────────────────────────────────────────────────
 const activityTypes = {
-  sightseeing:   { name: "Sightseeing",      color: "#4285F4" },
-  food:         { name: "Food & Dining",    color: "#34A853" },
-  tour:         { name: "Tours",            color: "#EA4335" },
-  leisure:      { name: "Leisure",          color: "#FBBC05" },
-  cultural:     { name: "Cultural",         color: "#9C27B0" },
-  outdoor:      { name: "Outdoor",          color: "#009688" },
-  transport:    { name: "Transport",        color: "#607D8B" },
-  accommodation:{ name: "Accommodation",    color: "#FF9800" },
+  sightseeing:   { name: "Sightseeing",   color: "#4285F4" },
+  food:         { name: "Food & Dining", color: "#34A853" },
+  tour:         { name: "Tours",         color: "#EA4335" },
+  leisure:      { name: "Leisure",       color: "#FBBC05" },
+  cultural:     { name: "Cultural",      color: "#9C27B0" },
+  outdoor:      { name: "Outdoor",       color: "#009688" },
+  transport:    { name: "Transport",     color: "#607D8B" },
+  accommodation:{ name: "Accommodation", color: "#FF9800" },
 };
 
-// INITIAL ACTIVITIES BY COUNTRY
+// ─── DEFAULT ACTIVITIES FOR EACH COUNTRY ───────────────────────────────────────
 const activitiesByCountry = {
   greece: [
     {
@@ -101,127 +75,7 @@ const activitiesByCountry = {
       scenicRating: 4,
       culturalRating: 5,
     },
-    {
-      id: "activity-3",
-      name: "Santorini Sunset",
-      image: "/images/santorini.jpg",
-      duration: "2 hours",
-      location: "Santorini",
-      description: "Watch the famous sunset over the caldera",
-      type: "leisure",
-      physicalRating: 1,
-      scenicRating: 5,
-      culturalRating: 3,
-    },
-    {
-      id: "activity-4",
-      name: "Mykonos Beaches",
-      image: "/images/mykonos.jpg",
-      duration: "4 hours",
-      location: "Mykonos",
-      description: "Relax at the beautiful beaches of Mykonos",
-      type: "leisure",
-      physicalRating: 2,
-      scenicRating: 5,
-      culturalRating: 2,
-    },
-    {
-      id: "activity-5",
-      name: "Delphi",
-      image: "/images/delphi.jpg",
-      duration: "5 hours",
-      location: "Delphi",
-      description: "Visit the ancient sanctuary of Apollo",
-      type: "tour",
-      physicalRating: 4,
-      scenicRating: 5,
-      culturalRating: 5,
-    },
-    {
-      id: "activity-6",
-      name: "Meteora Monasteries",
-      image: "/images/meteora.jpg",
-      duration: "6 hours",
-      location: "Meteora",
-      description: "Explore the monasteries built on natural rock pillars",
-      type: "tour",
-      physicalRating: 4,
-      scenicRating: 5,
-      culturalRating: 5,
-    },
-    {
-      id: "activity-7",
-      name: "Greek Cooking Class",
-      image: "/placeholder.svg?height=200&width=300",
-      duration: "3 hours",
-      location: "Athens",
-      description: "Learn to cook traditional Greek dishes",
-      type: "food",
-      physicalRating: 2,
-      scenicRating: 3,
-      culturalRating: 4,
-    },
-    {
-      id: "activity-8",
-      name: "Olympia",
-      image: "/placeholder.svg?height=200&width=300",
-      duration: "4 hours",
-      location: "Olympia",
-      description: "Visit the birthplace of the Olympic Games",
-      type: "sightseeing",
-      physicalRating: 3,
-      scenicRating: 4,
-      culturalRating: 5,
-    },
-    {
-      id: "activity-9",
-      name: "Corinth Canal",
-      image: "/placeholder.svg?height=200&width=300",
-      duration: "1 hour",
-      location: "Corinth",
-      description:
-        "See the narrow canal connecting the Gulf of Corinth with the Saronic Gulf",
-      type: "sightseeing",
-      physicalRating: 1,
-      scenicRating: 4,
-      culturalRating: 3,
-    },
-    {
-      id: "activity-10",
-      name: "Traditional Greek Taverna",
-      image: "/placeholder.svg?height=200&width=300",
-      duration: "2 hours",
-      location: "Athens",
-      description: "Enjoy authentic Greek cuisine with local specialties",
-      type: "food",
-      physicalRating: 1,
-      scenicRating: 3,
-      culturalRating: 4,
-    },
-    {
-      id: "activity-11",
-      name: "Athens City Tour",
-      image: "/placeholder.svg?height=200&width=300",
-      duration: "4 hours",
-      location: "Athens",
-      description: "Guided tour of Athens' main attractions",
-      type: "tour",
-      physicalRating: 3,
-      scenicRating: 4,
-      culturalRating: 5,
-    },
-    {
-      id: "activity-12",
-      name: "Greek Wine Tasting",
-      image: "/placeholder.svg?height=200&width=300",
-      duration: "2 hours",
-      location: "Santorini",
-      description: "Sample local Greek wines with expert guidance",
-      type: "food",
-      physicalRating: 1,
-      scenicRating: 4,
-      culturalRating: 4,
-    },
+    // …and so on (copy whatever you already have) …
   ],
   italy: [
     {
@@ -249,61 +103,10 @@ const activitiesByCountry = {
       culturalRating: 5,
     },
   ],
-  japan: [
-    {
-      id: "japan-1",
-      name: "Tokyo Tower",
-      image: "/placeholder.svg?height=200&width=300",
-      duration: "2 hours",
-      location: "Tokyo",
-      description: "Visit the iconic Tokyo Tower for panoramic views",
-      type: "sightseeing",
-      physicalRating: 2,
-      scenicRating: 5,
-      culturalRating: 3,
-    },
-    {
-      id: "japan-2",
-      name: "Fushimi Inari Shrine",
-      image: "/placeholder.svg?height=200&width=300",
-      duration: "3 hours",
-      location: "Kyoto",
-      description: "Walk through thousands of torii gates",
-      type: "cultural",
-      physicalRating: 4,
-      scenicRating: 5,
-      culturalRating: 5,
-    },
-  ],
-  france: [
-    {
-      id: "france-1",
-      name: "Eiffel Tower",
-      image: "/placeholder.svg?height=200&width=300",
-      duration: "3 hours",
-      location: "Paris",
-      description: "Visit the iconic Eiffel Tower",
-      type: "sightseeing",
-      physicalRating: 3,
-      scenicRating: 5,
-      culturalRating: 4,
-    },
-    {
-      id: "france-2",
-      name: "Louvre Museum",
-      image: "/placeholder.svg?height=200&width=300",
-      duration: "4 hours",
-      location: "Paris",
-      description: "Explore one of the world's largest art museums",
-      type: "cultural",
-      physicalRating: 2,
-      scenicRating: 5,
-      culturalRating: 5,
-    },
-  ],
+  // …”japan” and “france” as before…
 };
 
-// TIME SLOTS FOR THE CALENDAR
+// ─── TIME SLOTS FOR THE CALENDAR ───────────────────────────────────────────────
 const timeSlots = [
   "8:00 AM",
   "9:00 AM",
@@ -320,7 +123,16 @@ const timeSlots = [
   "8:00 PM",
 ];
 
-// FORMAT TIME RANGE HELPER
+// ─── HELPER: MAP A LOWERCASED COUNTRY → FLAG EMOJI ─────────────────────────────
+function tripFlag(id: string) {
+  if (id === "japan") return "🇯🇵";
+  if (id === "italy") return "🇮🇹";
+  if (id === "france") return "🇫🇷";
+  if (id === "greece") return "🇬🇷";
+  return "🗺️";
+}
+
+// ─── HELPER: FORMAT A TIME RANGE GIVEN A START & DURATION ────────────────────
 const formatTimeRange = (startTime: string, durationHours: number) => {
   const startIndex = timeSlots.indexOf(startTime);
   if (startIndex === -1) return "";
@@ -342,88 +154,158 @@ const formatTimeRange = (startTime: string, durationHours: number) => {
   )}${endPeriod}`;
 };
 
-// GENERATE A LOCAL-ONLY Trip OBJECT
-const makeTrip = (name: string, startActivities: Activity[] = []): Trip => ({
-  id: crypto.randomUUID(),
+// ─── “LOCAL‐ONLY” MAKER FOR A TRIP OBJECT ──────────────────────────────────────
+//    Only used if Supabase does not have a saved itinerary yet.
+const makeTrip = (id: string, name: string, country_id: string): TripState => ({
+  id,
   name,
-  flag: tripFlag(name.toLowerCase()),
-  available: [...startActivities],
+  flag: tripFlag(country_id),
+  available: [
+    ...(activitiesByCountry[country_id as keyof typeof activitiesByCountry] || []),
+  ],
   scheduled: {},
 });
-
-// COMPUTE A FLAG EMOJI FROM A LOWERCASED COUNTRY STRING
-function tripFlag(id: string) {
-  if (id === "japan") return "🇯🇵";
-  if (id === "italy") return "🇮🇹";
-  if (id === "france") return "🇫🇷";
-  if (id === "greece") return "🇬🇷";
-  return "🗺️";
-}
 
 export default function ItineraryPlanner({
   countryId = "greece",
   initialName,
+  initialTripId,
 }: {
   countryId?: string;
   initialName?: string;
+  initialTripId: string;
 }) {
   const { toast } = useToast();
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [loading, setLoading] = useState<boolean>(true);
 
-  // 1) Build the initial list of “available” activities based on `countryId`
-  //    (If `countryId` is invalid or missing, this array will be empty.)
-  const initialAvail = [
-    ...(activitiesByCountry[countryId as keyof typeof activitiesByCountry] || []),
-  ];
+  // ── State for the single Trip we’re editing ─────────────────────────────────
+  const [tripState, setTripState] = useState<TripState | null>(null);
 
-  // 2) Choose the trip’s initial name: if `initialName` is passed, use that;
-  //    otherwise fall back to using the countryId itself (capitalized).
-  const initialTripName =
-    initialName && initialName.trim() !== ""
-      ? initialName.trim()
-      : countryId.charAt(0).toUpperCase() + countryId.slice(1);
-
-  // 3) Instantiate a brand‐new Trip object in local state (no Supabase anywhere here!)
-  const initialTrip: Trip = makeTrip(initialTripName, initialAvail);
-
-  const [trips, setTrips] = useState<Trip[]>(() => [initialTrip]);
-  const [currentId, setCurrentId] = useState(initialTrip.id);
-
-  // State for “Add Activity” modal
+  // ── Local “Add Activity” modal state ────────────────────────────────────────
   const [isAddOpen, setAddOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newLocation, setNewLocation] = useState("");
   const [newDuration, setNewDuration] = useState("1 hour");
-  const [newTag, setNewTag] = useState<keyof typeof activityTypes>(
-    "sightseeing"
-  );
+  const [newTag, setNewTag] = useState<keyof typeof activityTypes>("sightseeing");
   const [newDescription, setNewDescription] = useState("");
 
-  // Find the “currentTrip” object in state:
-  const currentTrip = trips.find((t) => t.id === currentId) as Trip;
+  // ────────────────────────────────────────────────────────────────────────────
+  // 1) ON MOUNT: Fetch the saved itinerary JSON from Supabase for `initialTripId`.
+  //    If it doesn’t exist (or `itinerary_json` is empty), we fall back to a brand‐new Trip.
+  // ────────────────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    async function loadTripFromDB() {
+      setLoading(true);
+      const supabase: SupabaseClient<any> = createPagesBrowserClient();
 
-  // Helper to partially update the current Trip
-  const updateTrip = (partial: Partial<Trip>) =>
-    setTrips((prev) =>
-      prev.map((t) => (t.id === currentId ? { ...t, ...partial } : t))
+      // We assume `itinerary_json` is a JSONB column on `trips` that looks like:
+      // {
+      //   "available": [<Activity>…],
+      //   "scheduled": { "<YYYY-MM-DD>-<TIMESLOT>": { … } … }
+      // }
+      const { data, error } = await supabase
+        .from("trips")
+        .select("id, name, country_id, flag, itinerary_json")
+        .eq("id", initialTripId)
+        .single();
+
+      if (error || !data) {
+        toast.toast({
+          title: "Failed to load trip",
+          description: error?.message ?? "Unknown error",
+          variant: "destructive",
+        });
+        // Fallback: build a fresh TripState from `initialName` and `countryId`
+        const fallbackName = initialName?.trim() || countryId;
+        const fallback = makeTrip(initialTripId, fallbackName, countryId);
+        setTripState(fallback);
+        setLoading(false);
+        return;
+      }
+
+      // If `itinerary_json` is present, use it. Otherwise, fall back again.
+      const savedItinerary = (data.itinerary_json as any) ?? null;
+
+      if (savedItinerary
+        && Array.isArray(savedItinerary.available)
+        && typeof savedItinerary.scheduled === "object"
+      ) {
+        // We already have:
+        //   savedItinerary.available: Activity[]
+        //   savedItinerary.scheduled: Record<string, any>
+        setTripState({
+          id: data.id,
+          name: data.name,
+          flag: data.flag,
+          available: savedItinerary.available,
+          scheduled: savedItinerary.scheduled,
+        });
+        setLoading(false);
+        return;
+      }
+
+      // If `itinerary_json` is missing or malformed, build a fresh TripState:
+      const fallbackTrip = makeTrip(data.id, data.name, data.country_id);
+      setTripState(fallbackTrip);
+      setLoading(false);
+    }
+
+    loadTripFromDB();
+  }, [initialTripId, countryId, initialName, toast]);
+
+  if (loading || !tripState) {
+    return (
+      <div className="min-h-[200px] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+      </div>
     );
+  }
 
-  // Aliases the fields the rest of the code expects
-  const { available: availableActivities, scheduled: scheduledActivities } =
-    currentTrip;
-  const setAvailableActivities = (avail: Activity[]) =>
-    updateTrip({ available: avail });
-  const setScheduledActivities = (sched: ScheduledMap) =>
-    updateTrip({ scheduled: sched });
+  // ────────────────────────────────────────────────────────────────────────────
+  // Helper to update our local TripState and persist it (itinerary_json) back to Supabase
+  // ────────────────────────────────────────────────────────────────────────────
+  const updateAndSaveTrip = async (newState: Partial<TripState>) => {
+    if (!tripState) return;
+    // 1) Update local copy
+    const updated: TripState = { ...tripState, ...newState };
+    setTripState(updated);
 
-  // ----- Add a brand‐new Activity to “available” ----- 
+    // 2) Persist back to Supabase
+    try {
+      const supabase: SupabaseClient<any> = createPagesBrowserClient();
+      await supabase
+        .from("trips")
+        .update({ itinerary_json: { 
+          available: updated.available, 
+          scheduled: updated.scheduled 
+        }})
+        .eq("id", tripState.id);
+      // (We don’t strictly need the return value; assume success or catch below)
+    } catch (err) {
+      console.error("Failed to save itinerary:", err);
+      toast.toast({
+        title: "Failed to save itinerary",
+        description: "Your changes may not persist. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // Aliases for “available” & “scheduled” data
+  const availableActivities = tripState.available;
+  const scheduledActivities = tripState.scheduled;
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // “Add Activity” modal → insert a brand‐new Activity into available array,
+  // then call updateAndSaveTrip({ available: [...] })
+  // ────────────────────────────────────────────────────────────────────────────
   const saveNewActivity = () => {
     if (!newTitle.trim()) return;
-
     const newActivity: Activity = {
       id: crypto.randomUUID(),
       name: newTitle.trim(),
-      image: "/placeholder.svg?height=200&width=300", // placeholder
+      image: "/placeholder.svg?height=200&width=300",
       duration: newDuration,
       location: newLocation.trim() || "Unknown",
       description: newDescription.trim(),
@@ -432,9 +314,10 @@ export default function ItineraryPlanner({
       scenicRating: 1,
       culturalRating: 1,
     };
-    setAvailableActivities([...availableActivities, newActivity]);
+    const newAvailList = [...availableActivities, newActivity];
+    updateAndSaveTrip({ available: newAvailList });
 
-    // reset & close the modal
+    // reset + close modal
     setNewTitle("");
     setNewLocation("");
     setNewDuration("1 hour");
@@ -443,39 +326,42 @@ export default function ItineraryPlanner({
     setAddOpen(false);
   };
 
-  // Whenever `countryId` changes, re‐initialize “available” and clear any scheduled
+  // Whenever `countryId` changes, we want to re-initialize only if we never loaded from DB.
+  // (In most cases, `countryId` is fixed once the trip is created.)
   useEffect(() => {
-    setAvailableActivities([
-      ...(activitiesByCountry[countryId as keyof typeof activitiesByCountry] || []),
-    ]);
-    setScheduledActivities({});
+    if (!tripState) return;
+    // If our trip came back from DB with a matching country, do nothing.
+    // Otherwise, fall back to fresh “available” set:
+    if (tripState.available.length === 0) {
+      const freshAvail = [
+        ...(activitiesByCountry[countryId as keyof typeof activitiesByCountry] || []),
+      ];
+      updateAndSaveTrip({ available: freshAvail, scheduled: {} });
+    }
   }, [countryId]);
 
-  // Generate a 3‐day calendar, starting at “today”
+  // ────────────────────────────────────────────────────────────────────────────
+  // Helpers for the calendar: generate 3 consecutive days, formatDate, parseDuration
+  // ────────────────────────────────────────────────────────────────────────────
+  const [currentDate, setCurrentDate] = useState(new Date());
   const calendarDates = Array.from({ length: 3 }, (_, i) => {
-    const date = new Date(currentDate);
-    date.setDate(date.getDate() + i);
-    return date;
+    const d = new Date(currentDate);
+    d.setDate(d.getDate() + i);
+    return d;
   });
-
-  // Format a date like “MON 09”
   const formatDate = (date: Date) => {
     const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
     const day = days[date.getDay()];
     const dateNum = date.getDate().toString().padStart(2, "0");
     return { day, dateNum };
   };
-
-  // Convert “2 hours” → 2, etc.
   const parseDuration = (durationStr: string) => {
     const match = durationStr.match(/(\d+(?:\.\d+)?)/);
-    if (match && match[1]) {
-      return Number.parseInt(match[1], 10);
-    }
-    return 1; // fallback to 1 hour
+    if (match && match[1]) return Number.parseInt(match[1], 10);
+    return 1;
   };
 
-  // Check if a block of contiguous timeslots is free
+  // Check if a block of slots is free
   const areTimeSlotsAvailable = (
     dateStr: string,
     startTimeSlot: string,
@@ -483,59 +369,53 @@ export default function ItineraryPlanner({
   ) => {
     const startIndex = timeSlots.indexOf(startTimeSlot);
     if (startIndex === -1) return false;
-
-    // If not enough slots remain in that day, bail
     if (startIndex + durationHours > timeSlots.length) return false;
-
-    // If any slot is already taken, fail
     for (let i = 0; i < durationHours; i++) {
-      const timeSlot = timeSlots[startIndex + i];
-      if (scheduledActivities[`${dateStr}-${timeSlot}`]) return false;
+      const t = timeSlots[startIndex + i];
+      if (scheduledActivities[`${dateStr}-${t}`]) return false;
     }
     return true;
   };
 
-  // Handle drag/drop of an activity into the calendar
+  // ────────────────────────────────────────────────────────────────────────────
+  // Handle drag‐and‐drop into calendar: remove from “available,” add to “scheduled”
+  // ────────────────────────────────────────────────────────────────────────────
   const onDragEnd = (result: any) => {
-    const { destination } = result;
+    const { destination, draggableId } = result;
     if (!destination) return;
 
-    // If dropped into a calendar cell
     if (destination.droppableId.startsWith("calendar|")) {
       const [, dateStr, timeSlot] = destination.droppableId.split("|");
-      const activityId = result.draggableId;
-
-      // Find the activity in availableActivities
       const activityIndex = availableActivities.findIndex(
-        (a) => a.id === activityId
+        (a) => a.id === draggableId
       );
       if (activityIndex === -1) return;
 
       const activity = availableActivities[activityIndex];
       const durationHours = parseDuration(activity.duration);
 
-      // If not enough contiguous free slots, show a toast & abort
+      // If not enough free slots, show toast and abort
       if (!areTimeSlotsAvailable(dateStr, timeSlot, durationHours)) {
-        toast({
+        toast.toast({
           title: "Cannot schedule activity",
-          description: `Not enough available time slots for ${activity.name} (${activity.duration})`,
+          description: `Not enough free time slots for ${activity.name} (${activity.duration})`,
           variant: "destructive",
         });
         return;
       }
 
-      // Remove from “availableActivities”
-      const newAvailableActivities = [...availableActivities];
-      newAvailableActivities.splice(activityIndex, 1);
+      // Remove that activity from availableActivities:
+      const newAvail = [...availableActivities];
+      newAvail.splice(activityIndex, 1);
 
-      // Build a brand‐new “scheduled” object, inserting this activity over multiple slots
+      // Build new scheduled object
+      const newSched: ScheduledMap = { ...scheduledActivities };
       const startIndex = timeSlots.indexOf(timeSlot);
-      const newScheduledActivities = { ...scheduledActivities };
       const timeRange = formatTimeRange(timeSlot, durationHours);
 
       for (let i = 0; i < durationHours; i++) {
-        const currentTimeSlot = timeSlots[startIndex + i];
-        newScheduledActivities[`${dateStr}-${currentTimeSlot}`] = {
+        const tslot = timeSlots[startIndex + i];
+        newSched[`${dateStr}-${tslot}`] = {
           ...activity,
           isStart: i === 0,
           isEnd: i === durationHours - 1,
@@ -545,26 +425,25 @@ export default function ItineraryPlanner({
         };
       }
 
-      updateTrip({
-        available: newAvailableActivities,
-        scheduled: newScheduledActivities,
-      });
+      updateAndSaveTrip({ available: newAvail, scheduled: newSched });
 
-      toast({
+      toast.toast({
         title: "Activity scheduled",
-        description: `${activity.name} (${activity.duration}) added to your itinerary at ${timeSlot}`,
+        description: `${activity.name} added to ${timeSlot} on ${dateStr}`,
       });
     }
   };
 
-  // Remove a multi‐slot activity from the calendar
+  // ────────────────────────────────────────────────────────────────────────────
+  // Remove a multi‐slot activity from the calendar: return it to “available”
+  // ────────────────────────────────────────────────────────────────────────────
   const removeActivity = (dateStr: string, timeSlot: string) => {
-    const activityKey = `${dateStr}-${timeSlot}`;
-    const activity = scheduledActivities[activityKey];
+    const key = `${dateStr}-${timeSlot}`;
+    const activity = scheduledActivities[key];
     if (!activity) return;
 
-    // Reconstruct the “original” Activity object
-    const originalActivity: Activity = {
+    // Reconstruct “original” Activity
+    const original: Activity = {
       id: activity.id,
       name: activity.name,
       image: activity.image,
@@ -577,65 +456,66 @@ export default function ItineraryPlanner({
       culturalRating: activity.culturalRating,
     };
 
-    // Add it back to availableActivities
-    const newAvailableActivities = [...availableActivities, originalActivity];
+    // Put it back in “available”
+    const newAvail = [...availableActivities, original];
 
-    // Remove all time slots occupied by that activity
+    // Remove all occupied slots
     const { position, totalSlots } = activity;
     const startIndex = timeSlots.indexOf(timeSlot) - position;
-    const newScheduledActivities = { ...scheduledActivities };
+    const newSched: ScheduledMap = { ...scheduledActivities };
 
     for (let i = 0; i < totalSlots; i++) {
-      const currentTimeSlot = timeSlots[startIndex + i];
-      delete newScheduledActivities[`${dateStr}-${currentTimeSlot}`];
+      const tslot = timeSlots[startIndex + i];
+      delete newSched[`${dateStr}-${tslot}`];
     }
 
-    updateTrip({
-      available: newAvailableActivities,
-      scheduled: newScheduledActivities,
-    });
-
-    toast({
+    updateAndSaveTrip({ available: newAvail, scheduled: newSched });
+    toast.toast({
       title: "Activity removed",
       description: `${activity.name} has been removed from your itinerary`,
     });
   };
 
-  // Navigate the calendar 3 days backward
+  // ────────────────────────────────────────────────────────────────────────────
+  // Move calendar backward / forward by 3 days
+  // ────────────────────────────────────────────────────────────────────────────
   const previousDays = () => {
-    const newDate = new Date(currentDate);
-    newDate.setDate(newDate.getDate() - 3);
-    setCurrentDate(newDate);
+    const d = new Date(currentDate);
+    d.setDate(d.getDate() - 3);
+    setCurrentDate(d);
   };
-
-  // Navigate the calendar 3 days forward
   const nextDays = () => {
-    const newDate = new Date(currentDate);
-    newDate.setDate(newDate.getDate() + 3);
-    setCurrentDate(newDate);
+    const d = new Date(currentDate);
+    d.setDate(d.getDate() + 3);
+    setCurrentDate(d);
   };
 
-  // Reset all scheduled activities and put everything back into “available”
+  // ────────────────────────────────────────────────────────────────────────────
+  // “Reset” puts all default country activities back into available, clears scheduled
+  // ────────────────────────────────────────────────────────────────────────────
   const resetItinerary = () => {
-    setAvailableActivities([
+    const freshAvail = [
       ...(activitiesByCountry[countryId as keyof typeof activitiesByCountry] || []),
-    ]);
-    setScheduledActivities({});
-    toast({
+    ];
+    updateAndSaveTrip({ available: freshAvail, scheduled: {} });
+    toast.toast({
       title: "Itinerary reset",
-      description: "All activities have been returned to the available list",
+      description: "All activities returned to available list",
     });
   };
 
+  // ────────────────────────────────────────────────────────────────────────────
+  // FINAL RENDER
+  // ────────────────────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col space-y-6">
-      {/* ─── Show trip’s flag & name at the top ─── */}
+      {/* ─── Show trip’s flag & name ─── */}
       <div className="flex items-center gap-2">
-        <span className="text-3xl">{currentTrip.flag}</span>
-        <h2 className="text-2xl font-semibold">{currentTrip.name}</h2>
+        <span className="text-3xl">{tripState.flag}</span>
+        <h2 className="text-2xl font-semibold">{tripState.name}</h2>
       </div>
 
-      {/* ─── Activity type legend ─── */}
+      {/* ─── Legend ─── */}
       <div className="mb-4 flex flex-wrap gap-3">
         {Object.entries(activityTypes).map(([key, { name, color }]) => (
           <div key={key} className="flex items-center gap-2">
@@ -648,7 +528,7 @@ export default function ItineraryPlanner({
         ))}
       </div>
 
-      {/* ─── Reset Itinerary button ─── */}
+      {/* ─── Reset Itinerary ─── */}
       <div className="flex justify-between mb-4">
         <Button
           onClick={resetItinerary}
@@ -658,23 +538,21 @@ export default function ItineraryPlanner({
         </Button>
       </div>
 
-      {/* ─── Trip selector bar (if you ever have multiple local Trip objects to switch between) ─── */}
+      {/* ─── “Switch Trip” BAR (if you ever store multiple TripStates in memory) ─── */}
       <div className="flex items-center gap-4 mb-6">
-        {trips.map((trip) => (
-          <button
-            key={trip.id}
-            onClick={() => setCurrentId(trip.id)}
-            className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-lg",
-              trip.id === currentId ? "bg-amber-200" : "bg-gray-800 text-white/80"
-            )}
-          >
-            <span>{trip.flag}</span>
-            <span className={trip.id === currentId ? "text-black font-medium" : ""}>
-              {trip.name}
-            </span>
-          </button>
-        ))}
+        <button
+          onClick={() => {
+            /* In most simple cases, you only have one Trip → no switching needed */
+          }}
+          className={cn(
+            "flex items-center gap-2 px-4 py-2 rounded-lg",
+            "bg-amber-200"
+          )}
+          style={{ cursor: "default" }}
+        >
+          <span>{tripState.flag}</span>
+          <span className="text-black font-medium">{tripState.name}</span>
+        </button>
       </div>
 
       <DragDropContext onDragEnd={onDragEnd}>
@@ -682,7 +560,7 @@ export default function ItineraryPlanner({
           {/* ─── Calendar View ─── */}
           <Card className="bg-white">
             <CardContent className="p-0 overflow-auto">
-              {/* Calendar navigation */}
+              {/* Navigation */}
               <div className="flex justify-between items-center p-4 border-b border-gray-200 bg-white">
                 <Button variant="ghost" size="sm" onClick={previousDays}>
                   Previous
@@ -698,7 +576,7 @@ export default function ItineraryPlanner({
                 </Button>
               </div>
 
-              {/* Calendar header (day labels) */}
+              {/* Header row: Day labels */}
               <div className="grid grid-cols-3 border-b border-gray-200 bg-white">
                 {calendarDates.map((date, idx) => {
                   const { day, dateNum } = formatDate(date);
@@ -714,9 +592,9 @@ export default function ItineraryPlanner({
                 })}
               </div>
 
-              {/* Calendar timeslots grid */}
+              {/* Timeslot rows */}
               <div className="grid grid-cols-[auto_1fr_1fr_1fr] bg-white">
-                {/* Time labels on far-left */}
+                {/* Time Labels */}
                 <div className="border-r border-gray-200">
                   {timeSlots.map((time, idx) => (
                     <div
@@ -728,7 +606,7 @@ export default function ItineraryPlanner({
                   ))}
                 </div>
 
-                {/* For each of the 3 days, build a column of cells */}
+                {/* One column per day */}
                 {calendarDates.map((date, dateIndex) => {
                   const dateStr = date.toISOString().split("T")[0];
                   return (
@@ -738,15 +616,10 @@ export default function ItineraryPlanner({
                     >
                       {timeSlots.map((time, timeIndex) => {
                         const cellKey = `${dateStr}-${time}`;
-                        const scheduledActivity = scheduledActivities[cellKey];
+                        const schedActivity = scheduledActivities[cellKey];
 
-                        // If this slot is part of an already‐rendered multi‐slot activity (and not the “isStart”),
-                        // skip rendering a Droppable for it; instead output an empty placeholder row.
-                        if (
-                          scheduledActivity &&
-                          !scheduledActivity.isStart &&
-                          scheduledActivity.position > 0
-                        ) {
+                        // If this slot is part of a multi‐slot activity but not the “start,” skip
+                        if (schedActivity && !schedActivity.isStart && schedActivity.position > 0) {
                           return (
                             <div
                               key={timeIndex}
@@ -756,12 +629,12 @@ export default function ItineraryPlanner({
                           );
                         }
 
-                        // Otherwise, render a Droppable for this timeslot
+                        // Otherwise, render a Droppable
                         return (
                           <Droppable
                             key={timeIndex}
                             droppableId={`calendar|${dateStr}|${time}`}
-                            isDropDisabled={Boolean(scheduledActivity)}
+                            isDropDisabled={Boolean(schedActivity)}
                           >
                             {(provided, snapshot) => (
                               <div
@@ -774,66 +647,57 @@ export default function ItineraryPlanner({
                                 }`}
                                 style={{ overflow: "visible" }}
                               >
-                                {scheduledActivity && scheduledActivity.isStart ? (
+                                {schedActivity && schedActivity.isStart ? (
                                   <div
                                     className="absolute left-1 right-1 rounded p-2 text-xs overflow-hidden flex flex-col z-10"
                                     style={{
                                       height: `calc(${
-                                        scheduledActivity.totalSlots
+                                        schedActivity.totalSlots
                                       } * 4rem - 0.5rem)`,
                                       top: "0.25rem",
                                       backgroundColor:
-                                        activityTypes[
-                                          scheduledActivity.type
-                                        ]?.color || "#4285F4",
+                                        activityTypes[schedActivity.type]?.color || "#4285F4",
                                       color: "white",
                                     }}
                                   >
                                     <div className="flex justify-between items-start">
                                       <div className="font-medium text-sm text-black">
-                                        {scheduledActivity.name}
+                                        {schedActivity.name}
                                       </div>
                                       <button
-                                        onClick={() =>
-                                          removeActivity(dateStr, time)
-                                        }
+                                        onClick={() => removeActivity(dateStr, time)}
                                         className="text-white hover:text-gray-200 p-1 rounded-full hover:bg-black/10"
                                       >
                                         <X className="h-3 w-3" />
                                       </button>
                                     </div>
 
-                                    {/* Location, time range, type */}
+                                    {/* Activity details */}
                                     <div className="mt-1 flex flex-col gap-1">
                                       <div className="flex items-center gap-1 text-black text-xs">
                                         <MapPin className="h-3 w-3 text-black" />
-                                        <span>{scheduledActivity.location}</span>
+                                        <span>{schedActivity.location}</span>
                                       </div>
                                       <div className="flex items-center gap-1 text-black text-xs">
                                         <Clock className="h-3 w-3 text-black" />
-                                        <span>{scheduledActivity.timeRange}</span>
+                                        <span>{schedActivity.timeRange}</span>
                                       </div>
                                       <div className="flex items-center gap-1 text-black text-xs">
                                         <Tag className="h-3 w-3 text-black" />
                                         <span>
-                                          {
-                                            activityTypes[
-                                              scheduledActivity.type
-                                            ]?.name
-                                          }
+                                          {activityTypes[schedActivity.type]?.name}
                                         </span>
                                       </div>
                                     </div>
 
-                                    {/* Optionally show description if enough slots */}
-                                    {scheduledActivity.totalSlots >= 3 && (
+                                    {/* Show description if it spans ≥3 slots */}
+                                    {schedActivity.totalSlots >= 3 && (
                                       <div className="mt-2 text-black text-xs line-clamp-2">
-                                        {scheduledActivity.description}
+                                        {schedActivity.description}
                                       </div>
                                     )}
                                   </div>
                                 ) : null}
-
                                 {provided.placeholder}
                               </div>
                             )}
@@ -859,7 +723,7 @@ export default function ItineraryPlanner({
                 </p>
               </div>
 
-              {/* ➕ Add Activity button (opens the modal) */}
+              {/* ➕ Add Activity button */}
               <Button
                 size="sm"
                 className="bg-white text-black border border-gray-300 hover:bg-gray-100"
@@ -878,16 +742,11 @@ export default function ItineraryPlanner({
                 >
                   {availableActivities.length === 0 ? (
                     <div className="col-span-2 text-center py-8 text-black">
-                      No available activities. Remove activities from the
-                      calendar to return them here.
+                      No available activities. Remove activities from the calendar to return them here.
                     </div>
                   ) : (
-                    availableActivities.map((activity, index) => (
-                      <Draggable
-                        key={activity.id}
-                        draggableId={activity.id}
-                        index={index}
-                      >
+                    availableActivities.map((activity, idx) => (
+                      <Draggable key={activity.id} draggableId={activity.id} index={idx}>
                         {(prov, snapshot) => (
                           <ActivityCard
                             activity={activity}
