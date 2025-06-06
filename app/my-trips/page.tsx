@@ -137,7 +137,7 @@ export default function MyTripsPage() {
         {
           name: "Sample Trip",
           country_id: "",
-          flag: "🗺️",
+          flag: "🇬🇷",
           is_public: false,
           user_id: user.id,
         },
