@@ -129,7 +129,10 @@ export default function CommunityPage() {
                   <div className="flex items-center gap-4 text-sm text-gray-600">
                     <div className="flex items-center gap-1">
                       <MapPin className="h-4 w-4" />
-                      <span>{trip._count.activities} activities</span>
+                      <span>
+                        {trip._count.activities}{" "}
+                        {trip._count.activities === 1 ? "activity" : "activities"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
