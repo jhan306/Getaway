@@ -138,9 +138,6 @@ export default function CommunityPage() {
                         View Trip
                       </Link>
                     </Button>
-                    <Button asChild variant="outline" size="sm">
-                      <Link href={`/itinerary?destination=${trip.country_id}`}>Plan Similar</Link>
-                    </Button>
                   </div>
                 </div>
               </CardContent>
