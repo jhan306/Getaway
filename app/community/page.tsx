@@ -1,13 +1,19 @@
+// app/community/page.tsx
 "use client";
 
-import useSWR from "swr";
-import type { SupabaseClient } from "@supabase/auth-helpers-nextjs";
-import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { MapPin, Users, Calendar, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Header from "@/components/header";
+
+// 1) Remove your old createClient import.
+// import { createClient } from "@/lib/supabase/client"
+
+// 2) Import the official Next.js “Pages” helper instead:
+import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs";
+import type { SupabaseClient } from "@supabase/auth-helpers-nextjs";
 
 type PublicTrip = {
   id: string;
@@ -25,63 +31,60 @@ type PublicTrip = {
 };
 
 export default function CommunityPage() {
-  // 1) Instantiate Supabase client for the browser
-  const supabase: SupabaseClient<any> = createPagesBrowserClient();
+  const [trips, setTrips] = useState<PublicTrip[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // 2) Define a fetcher that queries Supabase and returns PublicTrip[]
-  const fetchPublicTrips = async (): Promise<PublicTrip[]> => {
-    const { data, error } = await supabase
-      .from("trips")
-      .select(
-        `
+  useEffect(() => {
+    // 3) Instantiate the Supabase client on the browser:
+    const supabase: SupabaseClient<any> = createPagesBrowserClient();
+
+    async function fetchPublicTrips() {
+      // 4) Query “trips” exactly as before:
+      const { data, error } = await supabase
+        .from("trips")
+        .select(
+          `
           id,
           name,
           country_id,
           flag,
           created_at,
-          activities(count),
+          activities(count)
           user:users_public!user_id (
             full_name,
             email
-          )
         `
-      )
-      .eq("is_public", true)
-      .order("created_at", { ascending: false })
-      .limit(12);
+        )
+        .eq("is_public", true)
+        .order("created_at", { ascending: false })
+        .limit(12);
 
-    if (error) {
-      throw error;
+      if (!error && data) {
+        // 5) Mock user data (since we haven’t joined with profiles yet):
+        const shaped: PublicTrip[] = data.map((trip) => ({
+          id: trip.id,
+          name: trip.name,
+          country_id: trip.country_id,
+          flag: trip.flag,
+          created_at: trip.created_at,
+          user: {
+            full_name: trip.user?.full_name ?? "Anonymous",
+            email: trip.user?.email ?? "",
+          },
+          _count: {
+            activities: trip.activities?.[0]?.count ?? 0,
+          },
+        }));
+        setTrips(shaped);
+      }
+
+      setLoading(false);
     }
 
-    // Shape the raw data into PublicTrip[]
-    const shaped: PublicTrip[] = (data ?? []).map((trip) => ({
-      id: trip.id,
-      name: trip.name,
-      country_id: trip.country_id,
-      flag: trip.flag,
-      created_at: trip.created_at,
-      user: {
-        full_name: trip.user?.full_name ?? "Anonymous",
-        email: trip.user?.email ?? "",
-      },
-      _count: {
-        activities: trip.activities?.[0]?.count ?? 0,
-      },
-    }));
+    fetchPublicTrips();
+  }, []);
 
-    return shaped;
-  };
-
-  // 3) Use SWR to fetch the trips
-  const {
-    data: trips = [],
-    error,
-    isLoading,
-  } = useSWR<PublicTrip[]>("publicTrips", fetchPublicTrips);
-
-  // 4) Render loading state
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="flex flex-col min-h-screen">
         <Header />
@@ -95,21 +98,6 @@ export default function CommunityPage() {
     );
   }
 
-  // 5) Handle error state (optional, but recommended)
-  if (error) {
-    return (
-      <div className="flex flex-col min-h-screen">
-        <Header />
-        <main className="flex-1 container px-4 py-8">
-          <div className="text-center">
-            <p className="text-red-600">Failed to load community trips.</p>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  // 6) Render the list of trips (or empty state)
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
