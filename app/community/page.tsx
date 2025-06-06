@@ -8,10 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Header from "@/components/header";
 
-// 1) Remove your old createClient import.
-// import { createClient } from "@/lib/supabase/client"
-
-// 2) Import the official Next.js "Pages" helper instead:
+// 1) Import Next.js Supabase helper:
 import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs";
 import type { SupabaseClient } from "@supabase/auth-helpers-nextjs";
 
@@ -35,41 +32,45 @@ export default function CommunityPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 3) Instantiate the Supabase client on the browser:
     const supabase: SupabaseClient<any> = createPagesBrowserClient();
 
     async function fetchPublicTrips() {
-      // 4) Query "trips" exactly as before:
+      // 2) Select from “trips” and join against users_public via user_id:
       const { data, error } = await supabase
         .from("trips")
-        .select(
-          `
+        .select(`
           id,
           name,
           country_id,
           flag,
           created_at,
           activities(count),
-          user:users_public!user_id ( full_name, email )
-        `
-        )
+          user:users_public!user_id (
+            full_name,
+            email
+          )
+        `)
         .eq("is_public", true)
         .order("created_at", { ascending: false })
         .limit(12);
 
       if (!error && data) {
-        // Use the actual user data from the join
-        const tripsWithUsers = data.map((trip) => ({
-          ...trip,
+        // 3) No need to “mock” – use the joined user.full_name directly
+        const shaped: PublicTrip[] = data.map((trip) => ({
+          id: trip.id,
+          name: trip.name,
+          country_id: trip.country_id,
+          flag: trip.flag,
+          created_at: trip.created_at,
           user: {
-            full_name: trip.user?.full_name || "Anonymous",
-            email: trip.user?.email || "",
+            full_name: trip.user?.full_name ?? "Anonymous",
+            email: trip.user?.email ?? "",
           },
           _count: {
-            activities: trip.activities?.[0]?.count || 0,
+            activities: trip.activities?.[0]?.count ?? 0,
           },
         }));
-        setTrips(tripsWithUsers);
+        setTrips(shaped);
       }
 
       setLoading(false);
@@ -107,75 +108,4 @@ export default function CommunityPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {trips.map((trip) => (
             <Card key={trip.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">{trip.flag}</span>
-                    <CardTitle className="text-lg">{trip.name}</CardTitle>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-600">
-                  by {trip.user.full_name || "Anonymous"}
-                </p>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-4 w-4" />
-                      <span>{trip._count.activities} activities</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      <span>
-                        {new Date(trip.created_at).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button asChild size="sm" className="flex-1">
-                      <Link href={`/trip/${trip.id}`}>
-                        <Eye className="h-4 w-4 mr-1" />
-                        View Trip
-                      </Link>
-                    </Button>
-                    <Button asChild variant="outline" size="sm">
-                      <Link href={`/itinerary?destination=${trip.country_id}`}>
-                        Plan Similar
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {trips.length === 0 && (
-          <div className="text-center py-12">
-            <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">No public trips yet</h3>
-            <p className="text-gray-600 mb-4">
-              Be the first to share your travel plans with the community!
-            </p>
-            <Button asChild>
-              <Link href="/itinerary">Create Your First Trip</Link>
-            </Button>
-          </div>
-        )}
-      </main>
-
-      <footer className="border-t py-6 md:py-0">
-        <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row px-4 md:px-6">
-          <div className="flex items-center gap-2">
-            <span className="text-6xl">🌍</span>
-            <p className="text-sm text-muted-foreground">
-              © 2024 Getaway. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
-    </div>
-  );
-}
+              <CardHeader className="
