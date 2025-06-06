@@ -44,40 +44,47 @@ export default function MyTripsPage() {
   const { toast } = useToast();
   const [showPlanner, setShowPlanner] = useState(false);
 
+  async function fetchMyTrips() {
+    if (!user) return;
+    const supabase = createPagesBrowserClient();
+    const { data, error } = await supabase
+      .from("trips")
+      .select(
+        `
+        id,
+        name,
+        country_id,
+        flag,
+        is_public,
+        created_at,
+        updated_at,
+        activities(count)
+      `
+      )
+      .eq("user_id", user.id)
+      .order("updated_at", { ascending: false });
+
+    if (!error && data) {
+      setTrips(data);
+    }
+    setLoading(false);
+  }
+
   useEffect(() => {
     if (!user) return;
-
-    async function fetchMyTrips() {
-      // 3) Instantiate Supabase client using the new helper:
-      const supabase: SupabaseClient<any> = createPagesBrowserClient();
-
-      // 4) Exactly the same "select" call you had before:
-      const { data, error } = await supabase
-        .from("trips")
-        .select(
-          `
-          id,
-          name,
-          country_id,
-          flag,
-          is_public,
-          created_at,
-          updated_at,
-          activities(count)
-        `
-        )
-        .eq("user_id", user.id)
-        .order("updated_at", { ascending: false });
-
-      if (!error && data) {
-        setTrips(data);
-      }
-
-      setLoading(false);
-    }
-
+    setLoading(true);
     fetchMyTrips();
   }, [user]);
+
+  // Called when ItineraryPlanner successfully creates a new trip:
+  const handleTripCreated = (newTrip: Trip) => {
+    // 1) Prepend the new trip so it shows up immediately:
+    setTrips((prev) => [newTrip, ...prev]);
+    // 2) Hide planner if you want to close it automatically:
+    setShowPlanner(false);
+    toast({ title: "Trip created!", description: `You can now edit or share ${newTrip.name}.` });
+  };
+
 
   const togglePublic = async (tripId: string, currentStatus: boolean) => {
     // 5) Create Supabase client via the new helper:
@@ -248,7 +255,7 @@ export default function MyTripsPage() {
         {/* 2) Render the planner whenever showPlanner is true (regardless of trips.length) */}
         {showPlanner && (
           <div className="mt-8">
-            <ItineraryPlanner />
+            <ItineraryPlanner onTripCreated={handleTripCreated} />
           </div>
         )}
       </main>
