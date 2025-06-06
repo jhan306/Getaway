@@ -135,7 +135,7 @@ export default function MyTripsPage() {
       .from("trips")
       .insert([
         {
-          name: "Sample Trip",
+          name: "Sample Greece Trip",
           country_id: "",
           flag: "🇬🇷",
           is_public: false,
