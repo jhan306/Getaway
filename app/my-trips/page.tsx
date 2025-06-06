@@ -76,15 +76,6 @@ export default function MyTripsPage() {
     fetchMyTrips();
   }, [user]);
 
-  // Called when ItineraryPlanner successfully creates a new trip:
-  const handleTripCreated = (newTrip: Trip) => {
-    // 1) Prepend the new trip so it shows up immediately:
-    setTrips((prev) => [newTrip, ...prev]);
-    // 2) Hide planner if you want to close it automatically:
-    setShowPlanner(false);
-    toast({ title: "Trip created!", description: `You can now edit or share ${newTrip.name}.` });
-  };
-
 
   const togglePublic = async (tripId: string, currentStatus: boolean) => {
     // 5) Create Supabase client via the new helper:
@@ -255,7 +246,7 @@ export default function MyTripsPage() {
         {/* 2) Render the planner whenever showPlanner is true (regardless of trips.length) */}
         {showPlanner && (
           <div className="mt-8">
-            <ItineraryPlanner onTripCreated={handleTripCreated} />
+            <ItineraryPlanner />
           </div>
         )}
       </main>
