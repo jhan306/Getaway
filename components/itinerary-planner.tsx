@@ -376,6 +376,19 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
   
     // 1) Instantiate Supabase client
     const supabase: SupabaseClient<any> = createPagesBrowserClient()
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
+
+    if (userError || !user) {
+      toast({
+        title: "Not signed in",
+        description: "You must be signed in to create a trip.",
+        variant: "destructive",
+      })
+      return
+    }
   
     // 2) Insert directly into the "trips" table with is_public=false
     const { data: insertedTrip, error } = await supabase
@@ -386,7 +399,7 @@ export default function ItineraryPlanner({ countryId = "greece" }: { countryId?:
           country_id: countryId,
           flag: tripFlag(countryId),
           is_public: false,
-          // (assuming your table has a user_id column set by RLS)
+          user_id: user.id,
         },
       ])
       .select(
