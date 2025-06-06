@@ -120,29 +120,25 @@ export default function ItineraryPlanner({
   // 1) ON MOUNT: load itinerary_json from Supabase (or build fallback)
   // ────────────────────────────────────────────────────────────────────────────
   useEffect(() => {
-    console.log("ItineraryPlanner.useEffect", {
-      initialTripId,
-      countryId,
-      initialName,
-      timestamp: new Date().toISOString(),
-    });
+    console.log("ItineraryPlanner.loadTripFromDB()", { initialTripId, timestamp: new Date().toISOString() });
+  
     async function loadTripFromDB() {
       if (!initialTripId) {
         setLoading(false);
         return;
       }
-
+  
       setLoading(true);
       const supabase: SupabaseClient<any> = createPagesBrowserClient();
-
+  
       const { data, error } = await supabase
         .from("trips")
         .select("id, name, country_id, flag, itinerary_json")
         .eq("id", initialTripId)
         .single();
-
+  
       if (error || !data) {
-        // Fallback if the fetch fails
+        // Fallback if the fetch fails:
         console.error("Failed to load trip:", error);
         const fallbackName = initialName?.trim() || "Untitled";
         const fallbackFlag = tripFlag(countryId || "");
@@ -156,8 +152,8 @@ export default function ItineraryPlanner({
         setLoading(false);
         return;
       }
-
-      // If saved JSON exists and is valid, use it; otherwise fallback
+  
+      // We got valid data back from Supabase
       const saved = data.itinerary_json as any;
       if (
         saved &&
@@ -172,7 +168,7 @@ export default function ItineraryPlanner({
           scheduled: saved.scheduled,
         });
       } else {
-        // No saved itinerary → brand-new
+        // First‐time load (no JSON saved yet):
         setTripState({
           id: data.id,
           name: data.name,
@@ -181,12 +177,12 @@ export default function ItineraryPlanner({
           scheduled: {},
         });
       }
-
+  
       setLoading(false);
     }
-
+  
     loadTripFromDB();
-  }, [initialTripId, countryId, initialName])
+  }, [initialTripId])
 
   // ────────────────────────────────────────────────────────────────────────────
   // 2) saveItinerary(): updates React state & persists to Supabase
