@@ -43,6 +43,7 @@ export default function MyTripsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [showPlanner, setShowPlanner] = useState(false);
+  const [newTripName, setNewTripName] = useState<string>("");
 
   async function fetchMyTrips() {
     if (!user) return;
@@ -174,6 +175,12 @@ export default function MyTripsPage() {
       description: "A sample trip has been inserted for you to explore.",
     });
   };
+  const handleCreateBlankTrip = () => {
+    const name = prompt("Enter a name for your new trip:")?.trim();
+    if (!name) return;
+    setNewTripName(name);
+    setShowPlanner(true);
+  };
 
   if (loading) {
     return (
@@ -208,8 +215,9 @@ export default function MyTripsPage() {
         
            {/* Create Your First Trip → opens a blank planner */}
            <Button onClick={() => setShowPlanner(true)} size="sm">
+           <Button onClick={handleCreateBlankTrip} size="sm">
              <Plus className="h-4 w-4 mr-2" />
-             Create Your First Trip
+             Create Your First Trip!
            </Button>
          </div>
         </div>
@@ -298,7 +306,7 @@ export default function MyTripsPage() {
             </p>
             <Button onClick={() => setShowPlanner(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Create Your First Trip
+              Create a Trip!
             </Button>
           </div>
         )}
@@ -307,6 +315,7 @@ export default function MyTripsPage() {
         {showPlanner && (
           <div className="mt-8">
             <ItineraryPlanner  countryId=""/>
+            <ItineraryPlanner countryId="" initialName={newTripName} />
           </div>
         )}
       </main>
