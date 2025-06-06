@@ -213,7 +213,7 @@ export default function MyTripsPage() {
             </Button>
             <Button onClick={handleCreateBlankTrip} size="sm">
               <Plus className="h-4 w-4 mr-2" />
-              Create Your First Trip
+              Create A Trip!
             </Button>
           </div>
         </div>
@@ -303,7 +303,7 @@ export default function MyTripsPage() {
             </p>
             <Button onClick={handleCreateBlankTrip}>
               <Plus className="h-4 w-4 mr-2" />
-              Create a trip!
+              Create Your First Trip!
             </Button>
           </div>
         )}
