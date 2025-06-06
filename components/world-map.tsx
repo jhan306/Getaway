@@ -79,6 +79,7 @@ export default function WorldMap() {
             <Geographies geography={geoUrl}>
               {({ geographies }) =>
                 geographies.map((geo) => {
+                  console.log("ISO_A3:", geo.properties.ISO_A3)
                   const iso = geo.properties.ISO_A3
                   const country = countryData[iso]
                   const value = country?.value ?? 0
