@@ -120,6 +120,12 @@ export default function ItineraryPlanner({
   // 1) ON MOUNT: load itinerary_json from Supabase (or build fallback)
   // ────────────────────────────────────────────────────────────────────────────
   useEffect(() => {
+    console.log("ItineraryPlanner.useEffect", {
+      initialTripId,
+      countryId,
+      initialName,
+      timestamp: new Date().toISOString(),
+    });
     async function loadTripFromDB() {
       if (!initialTripId) {
         setLoading(false);
