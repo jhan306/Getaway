@@ -186,7 +186,7 @@ export default function ItineraryPlanner({
     }
 
     loadTripFromDB();
-  }, [initialTripId, countryId, initialName]);
+  }, [initialTripId, countryId, initialName])
 
   // ────────────────────────────────────────────────────────────────────────────
   // 2) saveItinerary(): updates React state & persists to Supabase
