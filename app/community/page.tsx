@@ -24,7 +24,7 @@ type PublicTrip = {
   user: {
     full_name: string | null;
     email: string;
-  } | null;
+  };
   _count: {
     activities: number;
   };
@@ -39,35 +39,28 @@ export default function CommunityPage() {
     const supabase: SupabaseClient<any> = createPagesBrowserClient();
 
     async function fetchPublicTrips() {
-      // 4) Query “trips” and join the users_public table on user_id:
+      // 4) Query “trips” exactly as before:
       const { data, error } = await supabase
         .from("trips")
         .select(
-          `
-            id,
-            name,
-            country_id,
-            flag,
-            created_at,
-            activities(count),
-            user:users_public!user_id (
-              full_name,
-              email
-            )
-          `
+          
+          id,
+          name,
+          country_id,
+          flag,
+          created_at,
+          activities(count)
+          user:users_public!user_id (
+            full_name,
+            email
+        
         )
         .eq("is_public", true)
         .order("created_at", { ascending: false })
         .limit(12);
 
-      if (error) {
-        console.error("Error fetching public trips:", error);
-        setLoading(false);
-        return;
-      }
-
-      if (data) {
-        // 5) Shape the result into our PublicTrip[] type
+      if (!error && data) {
+        // 5) Mock user data (since we haven’t joined with profiles yet):
         const shaped: PublicTrip[] = data.map((trip) => ({
           id: trip.id,
           name: trip.name,
@@ -75,13 +68,11 @@ export default function CommunityPage() {
           flag: trip.flag,
           created_at: trip.created_at,
           user: {
-            full_name: trip.user?.full_name ?? null,
+            full_name: trip.user?.full_name ?? "Anonymous",
             email: trip.user?.email ?? "",
           },
           _count: {
-            activities: Array.isArray(trip.activities)
-              ? trip.activities[0]?.count ?? 0
-              : 0,
+            activities: trip.activities?.[0]?.count ?? 0,
           },
         }));
         setTrips(shaped);
@@ -130,7 +121,7 @@ export default function CommunityPage() {
                   </div>
                 </div>
                 <p className="text-sm text-gray-600">
-                  by {trip.user?.full_name || "Anonymous"}
+                  by {trip.user.full_name || "Anonymous"}
                 </p>
               </CardHeader>
               <CardContent className="pt-0">
@@ -150,7 +141,7 @@ export default function CommunityPage() {
 
                   <div className="flex gap-2">
                     <Button asChild size="sm" className="flex-1">
-                      <Link href={`/trip/${trip.id}`}>
+                      <Link href={/trip/${trip.id}}>
                         <Eye className="h-4 w-4 mr-1" />
                         View Trip
                       </Link>
