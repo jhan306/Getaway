@@ -122,10 +122,39 @@ const makeTrip = (name: string, startActivities: Activity[] = []): Trip => ({
 
 // COMPUTE A FLAG EMOJI FROM A LOWERCASED COUNTRY STRING
 function tripFlag(id: string) {
-  if (id === "japan") return "🇯🇵";
-  if (id === "italy") return "🇮🇹";
-  if (id === "france") return "🇫🇷";
-  return "🗺️";
+  function tripFlag(id: string): string {
+    if (id === "united_states") return "🇺🇸";
+    if (id === "canada") return "🇨🇦";
+    if (id === "united_kingdom") return "🇬🇧";
+    if (id === "france") return "🇫🇷";
+    if (id === "germany") return "🇩🇪";
+    if (id === "japan") return "🇯🇵";
+    if (id === "australia") return "🇦🇺";
+    if (id === "brazil") return "🇧🇷";
+    if (id === "india") return "🇮🇳";
+    if (id === "china") return "🇨🇳";
+    if (id === "south_africa") return "🇿🇦";
+    if (id === "russia") return "🇷🇺";
+    if (id === "mexico") return "🇲🇽";
+    if (id === "argentina") return "🇦🇷";
+    if (id === "egypt") return "🇪🇬";
+    if (id === "greece") return "🇬🇷";
+    if (id === "italy") return "🇮🇹";
+    if (id === "spain") return "🇪🇸";
+    if (id === "south_korea") return "🇰🇷";
+    if (id === "netherlands") return "🇳🇱";
+    if (id === "sweden") return "🇸🇪";
+    if (id === "norway") return "🇳🇴";
+    if (id === "vietnam") return "🇻🇳";
+    if (id === "philippines") return "🇵🇭";
+    if (id === "switzerland") return "🇨🇭";
+    if (id === "portugal") return "🇵🇹";
+    if (id === "uae") return "🇦🇪";
+    if (id === "peru") return "🇵🇪";
+    if (id === "kenya") return "🇰🇪";
+    if (id === "thailand") return "🇹🇭";
+    return "🗺️";
+  }  
 }
 
 export default function ItineraryPlanner({
