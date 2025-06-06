@@ -6,7 +6,7 @@ import ItineraryPlanner from "@/components/itinerary-planner"
 
 export default function ItineraryPage() {
   const params = useSearchParams()
-  const countryId = params.get("destination") || "greece"
+  const countryId = params.get("destination")
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
