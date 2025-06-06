@@ -230,7 +230,8 @@ export default function MyTripsPage() {
           ))}
         </div>
 
-        {trips.length === 0 && (
+        {/* 1) Only show “No trips yet” when there are zero trips AND the planner is not open */}
+        {trips.length === 0 && !showPlanner && (
           <div className="text-center py-12">
             <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium mb-2">No trips yet</h3>
@@ -241,11 +242,13 @@ export default function MyTripsPage() {
               <Plus className="h-4 w-4 mr-2" />
               Create Your First Trip
             </Button>
-            {showPlanner && (
-              <div className="mt-8">
-                <ItineraryPlanner />
-              </div>
-            )}
+          </div>
+        )}
+        
+        {/* 2) Render the planner whenever showPlanner is true (regardless of trips.length) */}
+        {showPlanner && (
+          <div className="mt-8">
+            <ItineraryPlanner />
           </div>
         )}
       </main>
