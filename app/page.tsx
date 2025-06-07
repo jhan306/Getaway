@@ -141,7 +141,7 @@ export default function Home() {
           <div className="flex items-center gap-2">
             <span className="text-6xl">🌍</span>
             <p className="text-sm text-muted-foreground">
-              © 2024 Getaway. All rights reserved.
+              © 2025 Getaway. All rights reserved.
             </p>
           </div>
         </div>

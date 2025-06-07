@@ -30,7 +30,7 @@ export default function MapPage() {
         <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row px-4 md:px-6">
           <div className="flex items-center gap-2">
             <span className="text-6xl">🌍</span>
-            <p className="text-sm text-muted-foreground">© 2024 Getaway. All rights reserved.</p>
+            <p className="text-sm text-muted-foreground">© 2025 Getaway. All rights reserved.</p>
           </div>
         </div>
       </footer>

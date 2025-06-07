@@ -118,7 +118,7 @@ export default function ItineraryPage() {
       </main>
       <footer className="border-t py-6">
         <div className="container flex items-center justify-center text-sm text-gray-500">
-          © 2024 Getaway. All rights reserved.
+          © 2025 Getaway. All rights reserved.
         </div>
       </footer>
     </div>

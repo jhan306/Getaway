@@ -355,7 +355,7 @@ export default function AskPage({ params }: { params: { id: string } }) {
           <div className="flex items-center gap-2">
             <Globe className="h-5 w-5" />
             <p className="text-sm text-muted-foreground">
-              © 2024 Getaway. All rights reserved.
+              © 2025 Getaway. All rights reserved.
             </p>
           </div>
         </div>
