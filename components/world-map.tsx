@@ -326,7 +326,7 @@ export default function WorldMap() {
 
       {/* Current Most Explored Countries */}
       <div className="absolute bottom-4 left-4 bg-white p-4 rounded shadow-md text-sm w-[250px]">
-        <div className="mb-2 font-bold text-lg">Top 5 Countries</div>
+        <div className="mb-2 font-bold text-lg">Current Most Explored Countries</div>
         <ol className="list-decimal list-inside space-y-1">
           {Object.entries(countryData)
             .filter(([_, data]) => data.value > 0)
